@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= content_for(:title) || "Secret Strava" %></title>
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="application-name" content="Bike Activities">
+        <meta name="mobile-web-app-capable" content="yes">
+        <%= csrf_meta_tags %>
+        <%= csp_meta_tag %>
+
+        <%= yield :head %>
+
+        <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+        <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+        <link rel="icon" href="/icon.png" type="image/png">
+        <link rel="icon" href="/icon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/icon.png">
+
+        <%# Includes all stylesheet files in app/assets/stylesheets %>
+        <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+        <%= javascript_importmap_tags %>
+    </head>
+
+    <body>
+        <header id="app-header">
+
+            <nav class="main">
+                <ul>
+                    <li class="brand">🧿</li>
+                    <li><%= link_to "Activities", activities_path %></li>
+                    <li><%= link_to "Calendar", year_calendar_path(year: Date.today.year) %></li>
+                    <li><%= link_to "Heatmap", heatmap_path %></li>
+                    <li><%= link_to "+", upload_path %></li>
+                </ul>
+            </nav>
+            <%= link_to "🍌 Account", account_path %>
+        </header>
+
+        <main id="app-main">
+            <%= yield %>
+        </main>
+    </body>
+</html>

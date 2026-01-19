@@ -1,0 +1,115 @@
+<h1>Activity</h1>
+<h2><%= @activity.name %></h2>
+<h2><%= @activity.type %></h2>
+<h2><%= @activity.activity_type %></h2>
+<h2><%= @activity.description %></h2>
+
+
+<figure class="map analyzing-shimmer"
+    style="height:300px"
+    data-controller="activity-map"
+    data-activity-map-url-value="<%= activity_url(@activity, format: :geojson, detail: "high") %>">
+</figure>
+<style>
+:root {
+    --gray-2: #e0e0e0   ;
+    --gray-3: #c0c0c0;
+}
+
+@keyframes shimmer {
+    to {
+        background-position: 200% 0;
+    }
+}
+
+.analyzing-shimmer {
+    color: var(--gray-5);
+    font-size: var(--font-size-00);
+    background: linear-gradient(
+        90deg,
+        var(--gray-2) 25%,
+        var(--gray-3) 50%,
+        var(--gray-2) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    padding: var(--size-1) var(--size-2);
+    border-radius: var(--radius-1);
+}
+</style>
+
+<dl>
+    <dt>Distance</dt>
+    <dd><%= format_distance(@activity.distance) %></dd>
+
+    <dt>Elevation gain</dt>
+    <dd><%= format_elevation(@activity.elevation_gain) %></dd>
+
+    <dt>Start time</dt>
+    <dd><%= @activity.start_time %></dd>
+
+    <dt>End time</dt>
+    <dd><%= @activity.end_time %></dd>
+
+    <dt>Average Speed</dt>
+    <dd><%= @activity.average_speed %></dd>
+
+</dl>
+
+<hr>
+    <dl class="stats-horizonal-list">
+        <% @activity.attributes.without("track").each do |key, value| %>
+        <dt><%= key %></dt><dd><%= value %></dd>
+        <% end %>
+    </dl>
+<hr>
+<section>
+    <h2>Overview</h2>
+
+
+</section>
+
+
+<section>
+    <h2>Geschwindigkeit</h2>
+    <figure></figure>
+
+    <dl class="stats-horizonal-list">
+        <dt>Average speed</dt>
+        <dd>18.1 km/h</dd>
+
+        <dt>Highest speed</dt>
+        <dd>35.9 km/h</dd>
+
+        <dt>Moving time</dt>
+        <dd>6:32</dd>
+
+        <dt>Elapsed time</dt>
+        <dd>8:43</dd>
+    </dl>
+</section>
+
+
+<section>
+    <h2>Höhe</h2>
+    <figure></figure>
+
+    <dl class="stats-horizonal-list">
+        <dt>Elevation gain</dt>
+        <dd>1832 m</dd>
+
+        <dt>Elevation loss</dt>
+        <dd>1234 m</dd>
+    </dl>
+
+</section>
+
+
+<style>
+.stats-horizonal-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    dt { grid-column: 1}
+    dd { grid-column: 2}
+}
+</style>

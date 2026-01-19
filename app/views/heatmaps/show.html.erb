@@ -1,0 +1,21 @@
+<figure class="heatmap"
+    data-controller="heatmap"
+    data-heatmap-target="map"
+    data-heatmap-line-color-value="#aa0099"
+    data-heatmap-line-width-value="1"
+    data-heatmap-line-opacity-value="0.1">
+</figure>
+
+<style>
+.heatmap {
+    background: red;
+    height: 100%;
+    min-height: 200px;
+}
+
+#app-main:has(.heatmap) {
+    min-inline-size: 100vw;
+    padding: 0;
+    margin-inline: 0;
+}
+</style>

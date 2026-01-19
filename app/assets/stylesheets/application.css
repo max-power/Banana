@@ -1,0 +1,154 @@
+/*
+ * This is a manifest file that'll be compiled into application.css.
+ *
+ * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
+ * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
+ * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
+ * depending on specificity.
+ *
+ * Consider organizing styles into separate files for maintainability.
+ */
+
+@import url("https://unpkg.com/maplibre-gl@5.15.0/dist/maplibre-gl.css");
+
+:root {
+    --brand: hsl(54 100 48);
+    accent-color: var(--brand);
+}
+:focus-visible {
+    outline-color: var(--brand);
+}
+::selection {
+    background-color: var(--brand);
+}
+::marker {
+    color: var(--brand);
+}
+
+:is(
+    ::-webkit-calendar-picker-indicator,
+    ::-webkit-clear-button,
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button
+) {
+    color: var(--brand);
+}
+
+nav ul,
+nav li,
+figure,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scrollbar-color: var(--brand) Canvas;
+}
+
+input,
+textarea {
+    caret-color: var(--brand);
+}
+
+figure {
+    > img {
+        inline-size: 100%;
+        block-size: 100%;
+        object-fit: cover;
+    }
+}
+
+body {
+    font-family:
+        ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+        "DejaVu Sans Mono", monospace;
+    font-weight: normal;
+
+    margin: 0;
+    height: 100dvh; /* dynamic viewport height */
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+a {
+    color: var(--brand);
+    text-decoration-thickness: 0;
+    text-underline-offset: 2px;
+    transition: all 200ms ease;
+}
+a:hover,
+a:focus-visible {
+    text-decoration-thickness: 2px;
+}
+
+#app-header,
+#app-main {
+    max-inline-size: 960px;
+    margin-inline: auto;
+    padding: 1rem;
+    width: calc(100% - 2rem); /* ensure it can shrink on mobile */
+}
+
+#app-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+
+    nav ul {
+        display: flex;
+        gap: 1rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+        }
+    }
+}
+
+.calendar-year {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.month {
+    min-height: 200px;
+    background: silver;
+    padding: 1rem 1rem 0 1rem;
+    display: grid;
+    align-content: space-between;
+
+    header {
+        text-align: end;
+        text-transform: uppercase;
+        color: #808080;
+    }
+
+    .graph {
+        border: 1px solid black;
+        min-height: 50px;
+    }
+}
+
+.number {
+    font-variant-numeric: tabular-nums;
+}
+
+.stat {
+    display: grid;
+
+    dt {
+        color: #808080;
+        font-size: 0.75em;
+        text-transform: uppercase;
+        order: 2;
+    }
+    dd {
+        font-size: 2em;
+        font-weight: 700;
+        margin: 0;
+        order: 1;
+    }
+}
