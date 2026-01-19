@@ -66,6 +66,7 @@ class Activity < ApplicationRecord
         )
 
         insert_segments_from_gpx(meta[:segments])
+        RefreshMvtViewJob.perform_later
     end
 
     def insert_segments_from_gpx(segments_meta)

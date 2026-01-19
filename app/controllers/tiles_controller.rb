@@ -70,16 +70,20 @@ class TilesController < ApplicationController
         query = <<~SQL
           SELECT ST_AsMVT(tile, 'segments')
           FROM (
-            SELECT id, ST_AsMVTGeom(geom, ST_TileEnvelope($1, $2, $3)) AS mvt_geom
+            SELECT id,
+                user_id,
+                activity_type,
+                activity_name,
+                ST_AsMVTGeom(geom, ST_TileEnvelope($1, $2, $3)) AS geom
             FROM activity_segments_mvts
-            WHERE zoom_level = $1 AND geom && ST_TileEnvelope($1, $2, $3)
+            WHERE zoom_level = $1 AND geom && ST_TileEnvelope($1, $2, $3) AND user_id = $4
           ) AS tile
         SQL
 
         result = ActivitySegmentsMvt.connection.exec_query(
           query,
           "MVT Tile Fetch",
-          [tile.z, tile.x, tile.y]
+          [tile.z, tile.x, tile.y, Current.user.id]
         )
 
         raw_data = result.rows.first&.first

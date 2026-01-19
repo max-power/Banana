@@ -3,10 +3,10 @@ WITH zoom_levels AS (
 )
 SELECT
   s.id,
-  s.user_id,
+  a.user_id,
   a.activity_type,
   a.name AS activity_name,
-  s.start_date AS date,
+  a.start_time AS start_date,
   z.z AS zoom_level,
   CASE
     WHEN z.z < 10 THEN ST_Simplify(ST_Transform(s.geom, 3857), 200)
