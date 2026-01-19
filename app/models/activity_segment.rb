@@ -6,11 +6,12 @@ class ActivitySegment < ApplicationRecord
         joins(:activity).where(activities: { user_id: user_id })
     }
 
-    after_commit :refresh_scenic_view
+    # move to import job
+    # after_commit :refresh_map_tiles, on: [:create, :update]
 
-    def refresh_scenic_view
-      # Use 'CONCURRENTLY' so the view stays readable during the update
-      # (Requires a unique index on the materialized view)
-      #ActiveRecord::Base.connection.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scenic_view_cached")
-    end
+    # private
+
+    # def refresh_map_tiles
+    #     RefreshMvtViewJob.perform_later
+    # end
 end

@@ -9,6 +9,7 @@ class Current < ActiveSupport::CurrentAttributes
   # end
   #
   def user
-      @user ||= User.first
+      @user ||= User.find_or_create_by(email: "anselm@holthaus.de")
+      #@user ||= User.find_or_create_by(email: "kevin@melchert.xyz")
   end
 end

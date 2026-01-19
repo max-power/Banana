@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_19_155008) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_19_164046) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
@@ -124,13 +124,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_155008) do
            SELECT generate_series(0, 15) AS z
           )
    SELECT s.id,
+      a.user_id,
+      a.activity_type,
+      a.name AS activity_name,
+      a.start_time AS start_date,
       z.z AS zoom_level,
           CASE
               WHEN (z.z < 10) THEN st_simplify(st_transform(s.geom, 3857), (200)::double precision)
               WHEN (z.z < 13) THEN st_simplify(st_transform(s.geom, 3857), (50)::double precision)
               ELSE st_transform(s.geom, 3857)
           END AS geom
-     FROM (activity_segments s
+     FROM ((activity_segments s
+       JOIN activities a ON ((s.activity_id = a.id)))
        CROSS JOIN zoom_levels z)
     WHERE ((s.geom IS NOT NULL) AND (NOT st_isempty(s.geom)) AND (st_length(st_transform(s.geom, 3857)) > (
           CASE
@@ -139,4 +144,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_155008) do
               ELSE 0
           END)::double precision));
   SQL
+  add_index "activity_segments_mvts", ["geom"], name: "idx_mvt_geom", using: :gist
+  add_index "activity_segments_mvts", ["id", "zoom_level"], name: "idx_mvt_unique_refresh", unique: true
+
 end

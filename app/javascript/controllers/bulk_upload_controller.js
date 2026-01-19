@@ -57,7 +57,7 @@ export default class extends Controller {
       .then((response) => response.json())
       .then((data) => {
         item.querySelector(".status").innerHTML =
-          `<a href="/activities/${data.id}/edit">Edit Details</a>`;
+          `<a href="/activities/${data.id}">Show Details</a>`;
       });
   }
 
