@@ -1,0 +1,8 @@
+<article class="activity" id="<%= dom_id(activity) %>">
+    <%= link_to activity.name, activity %>
+
+    <figure class="map analyzing-shimmer"
+        style="height:300px"
+        data-controller="activity-map"
+        data-activity-map-url-value="<%= activity_url(activity, format: :geojson, detail: "medium") %>">
+</article>

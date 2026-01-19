@@ -1,0 +1,196 @@
+<article class="year-calendar">
+    <header>
+        <div>
+        <h1><%= @year %></h1>
+        <br>
+        <%= link_to @year.prev, year_calendar_path(@year.prev) %>
+        <%= link_to @year.next, year_calendar_path(@year.next) %>
+        </div>
+        <dl class="calendar-stats">
+            <div class="stat">
+            <dt>Kilometer</dt>
+            <dd><%= number_with_delimiter((@statistics.sum(&:distance) / 1000).round) %></dd>
+            </div>
+
+            <div class="stat">
+            <dt>Hours</dt>
+            <dd><%= number_with_delimiter(@statistics.sum(&:moving_time).seconds.in_hours.round) %></dd>
+            </div>
+            <!--moving_time: result.moving_time.to_i,
+            active_days: result.active_days.to_i-->
+            <div class="stat">
+            <dt>Activities</dt>
+            <dd><%= number_with_delimiter(@statistics.sum(&:activities_count)) %></dd>
+            </div>
+        </dl>
+
+    </header>
+
+    <svg width="600" height="100" style="border: 1px solid #ddd;">
+      <% max_distance = @daily_distances.map { |d| d[:distance] }.max %>
+      <% bar_width = 600.0 / @daily_distances.length %>
+      <% chart_height = 50 %>
+
+      <% @daily_distances.each_with_index do |day, index| %>
+        <% bar_height = max_distance > 0 ? (day[:distance] / max_distance * chart_height) : 0 %>
+        <% x = index * bar_width %>
+        <% y = 100 - bar_height - 30 %>
+
+        <rect
+          x="<%= x %>"
+          y="<%= y %>"
+          width="<%= bar_width - 1 %>"
+          height="<%= bar_height %>"
+          fill="#3b82f6"
+          opacity="0.8"
+        />
+
+        <% if index % 30 == 0 %>
+          <text
+            x="<%= x %>"
+            y="90"
+            font-size="10"
+            fill="#666"
+          >
+            <%= day[:date].strftime('%m/%d') %>
+          </text>
+        <% end %>
+      <% end %>
+
+      <!-- Y-axis label -->
+      <text x="5" y="15" font-size="12" fill="#666">
+        <%= "Max: #{(max_distance / 1000).round(1)} km" %>
+      </text>
+    </svg>
+
+
+
+    <section class="calendar-year">
+        <% @year.each_month do |month| %>
+            <%= link_to month_calendar_path(@year, month.number) do %>
+            <article class="month">
+                <header><%= month.month_abbr %></header>
+                <% if stat = @statistics.find { it.month == month } %>
+                <!--<dl class="stat">
+                    <dt>Kilometer</dt>
+                    <dd class="number"><%= @statistics.find { it.month == month }&.distance %></dd>
+                </dl>-->
+                <dl class="stat">
+                    <dt>Activities</dt>
+                    <dd class="number"><%= stat.activities_count %></dd>
+                </dl>
+                <div class="graph">
+                    <ul>
+                        <% month.each_day do |date| %>
+                            <li class="day-<%= date.day %>"></li>
+                        <% end %>
+                    </ul>
+                </div>
+                <% end %>
+            </article>
+            <% end %>
+        <% end %>
+    </section>
+
+</article>
+
+
+<style>
+.year-calendar {
+    display: grid;
+
+
+    header { display: flex; justify-content: space-between; }
+
+    .graph {
+        display: grid;
+        border: 0;
+    }
+}
+
+.calendar-stats {
+    justify-self: end;
+    display: flex;
+    gap: 4rem;
+
+    .stat {
+        justify-items: center;
+    }
+}
+
+a:has(.month) {
+    text-decoration: none;
+    border: none;
+
+
+    &:hover .month {
+        background: #e0e0e0;
+
+        header { color: var(--brand)}
+    }
+}
+.month {
+    background-color: #f0f0f0;
+    transition: all 150ms ease;
+
+
+    dt { text-transform:none;}
+
+}
+
+
+.graph ul {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 1px;
+}
+
+.graph li {
+  flex: 1;
+  background: linear-gradient(to top, #808080, #999);
+  transition: all 0.3s ease;
+
+    &:hover {
+        background: linear-gradient(to top, var(--brand), var(--brand));
+        /*transform: translateY(-5px);*/
+    }
+}
+
+/* Example heights - customize these for your data */
+.graph .day-1 { height: 45%; }
+.graph .day-2 { height: 68%; }
+.graph .day-3 { height: 82%; }
+.graph .day-4 { height: 55%; }
+.graph .day-5 { height: 90%; }
+.graph .day-6 { height: 72%; }
+.graph .day-7 { height: 60%; }
+.graph .day-8 { height: 85%; }
+.graph .day-9 { height: 78%; }
+.graph .day-10 { height: 65%; }
+.graph .day-11 { height: 92%; }
+.graph .day-12 { height: 70%; }
+.graph .day-13 { height: 58%; }
+.graph .day-14 { height: 88%; }
+.graph .day-15 { height: 75%; }
+.graph .day-16 { height: 62%; }
+.graph .day-17 { height: 95%; }
+.graph .day-18 { height: 80%; }
+.graph .day-19 { height: 68%; }
+.graph .day-20 { height: 85%; }
+.graph .day-21 { height: 73%; }
+.graph .day-22 { height: 60%; }
+.graph .day-23 { height: 87%; }
+.graph .day-24 { height: 76%; }
+.graph .day-25 { height: 64%; }
+.graph .day-26 { height: 91%; }
+.graph .day-27 { height: 78%; }
+.graph .day-28 { height: 66%; }
+.graph .day-29 { height: 89%; }
+.graph .day-30 { height: 74%; }
+.graph .day-31 { height: 81%; }
+</style>

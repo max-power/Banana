@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fancy Color Name Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        /* Rainbow gradient slider container */
+        .rainbow-slider-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .rainbow-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 40px;
+            border-radius: 20px;
+            background: linear-gradient(to right,
+                hsl(0, 100%, 50%),
+                hsl(30, 100%, 50%),
+                hsl(60, 100%, 50%),
+                hsl(90, 100%, 50%),
+                hsl(120, 100%, 50%),
+                hsl(150, 100%, 50%),
+                hsl(180, 100%, 50%),
+                hsl(210, 100%, 50%),
+                hsl(240, 100%, 50%),
+                hsl(270, 100%, 50%),
+                hsl(300, 100%, 50%),
+                hsl(330, 100%, 50%),
+                hsl(360, 100%, 50%)
+            );
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .rainbow-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 3px solid #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+
+        .rainbow-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .rainbow-slider::-moz-range-thumb {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 3px solid #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s;
+        }
+
+        .rainbow-slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Saturation and Lightness sliders */
+        .sl-sliders {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .control-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 20px;
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .saturation-slider {
+            background: linear-gradient(to right,
+                hsl(var(--current-hue), 0%, 50%),
+                hsl(var(--current-hue), 100%, 50%)
+            );
+        }
+
+        .lightness-slider {
+            background: linear-gradient(to right,
+                hsl(var(--current-hue), var(--current-sat), 0%),
+                hsl(var(--current-hue), var(--current-sat), 50%),
+                hsl(var(--current-hue), var(--current-sat), 100%)
+            );
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: 2px solid #333;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-preview-large {
+            width: 100%;
+            height: 120px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .color-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .detail-label {
+            color: #888;
+            font-size: 0.85em;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Fancy Color Name Finder</h1>
+        <p class="subtitle">Discover creative names for any color using 30,000+ handpicked names</p>
+
+        <div class="rainbow-slider-container">
+            <label>Pick Your Color</label>
+            <input type="range" class="rainbow-slider" id="hueSlider" min="0" max="360" value="10" step="1">
+        </div>
+
+        <div class="sl-sliders">
+            <div class="slider-wrapper">
+                <div class="slider-label">
+                    <span>Saturation</span>
+                    <span class="slider-value" id="satValue">100%</span>
+                </div>
+                <input type="range" class="control-slider saturation-slider" id="satSlider" min="0" max="100" value="100" step="1">
+            </div>
+            <div class="slider-wrapper">
+                <div class="slider-label">
+                    <span>Lightness</span>
+                    <span class="slider-value" id="lightValue">50%</span>
+                </div>
+                <input type="range" class="control-slider lightness-slider" id="lightSlider" min="0" max="100" value="50" step="1">
+            </div>
+        </div>
+
+        <div class="color-preview-large" id="colorPreviewLarge"></div>
+
+        <div class="input-group">
+            <label for="colorInput">Current Color Value</label>
+            <input type="text" id="colorInput" readonly value="hsl(10, 100%, 50%)">
+        </div>
+
+        <div class="input-group">
+            <label for="listSelect">Color List</label>
+            <select id="listSelect">
+                <option value="default">Default (Best Overall)</option>
+                <option value="bestOf">Best Of</option>
+                <option value="wikipedia">Wikipedia</option>
+                <option value="xkcd">XKCD Survey</option>
+                <option value="ntc">Name That Color</option>
+                <option value="html">HTML/CSS</option>
+                <option value="basic">Basic</option>
+                <option value="ral">RAL</option>
+                <option value="ridgway">Ridgway</option>
+            </select>
+        </div>
+
+        <button id="findBtn">Find Fancy Name</button>
+
+        <div class="error" id="error"></div>
+
+        <div class="result" id="result">
+            <div class="color-preview" id="colorPreview"></div>
+            <div class="color-name" id="colorName"></div>
+            <div class="color-details">
+                <div class="detail-item">
+                    <div class="detail-label">HEX</div>
+                    <div class="detail-value" id="hexValue"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">RGB</div>
+                    <div class="detail-value" id="rgbValue"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">HSL</div>
+                    <div class="detail-value" id="hslValue"></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Distance (ΔE)</div>
+                    <div class="detail-value" id="distanceValue"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class FancyColorNamer {
+            constructor() {
+                this.apiUrl = 'https://api.color.pizza/v1/';
+            }
+
+            hslToRgb(h, s, l) {
+                s /= 100;
+                l /= 100;
+
+                const c = (1 - Math.abs(2 * l - 1)) * s;
+                const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+                const m = l - c / 2;
+                let r = 0, g = 0, b = 0;
+
+                if (h >= 0 && h < 60) {
+                    r = c; g = x; b = 0;
+                } else if (h >= 60 && h < 120) {
+                    r = x; g = c; b = 0;
+                } else if (h >= 120 && h < 180) {
+                    r = 0; g = c; b = x;
+                } else if (h >= 180 && h < 240) {
+                    r = 0; g = x; b = c;
+                } else if (h >= 240 && h < 300) {
+                    r = x; g = 0; b = c;
+                } else if (h >= 300 && h < 360) {
+                    r = c; g = 0; b = x;
+                }
+
+                return {
+                    r: Math.round((r + m) * 255),
+                    g: Math.round((g + m) * 255),
+                    b: Math.round((b + m) * 255)
+                };
+            }
+
+            rgbToHex(r, g, b) {
+                const toHex = (n) => {
+                    const hex = Math.round(n).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                };
+                return toHex(r) + toHex(g) + toHex(b);
+            }
+
+            hslToHex(h, s, l) {
+                const rgb = this.hslToRgb(h, s, l);
+                return this.rgbToHex(rgb.r, rgb.g, rgb.b);
+            }
+
+            async translate(h, s, l, list = 'default') {
+                const hex = this.hslToHex(h, s, l);
+                const url = `${this.apiUrl}?values=${hex}&list=${list}`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'X-Referrer': 'fancy-color-namer-demo'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data.colors || data.colors.length === 0) {
+                    throw new Error('No color data returned');
+                }
+
+                return data.colors[0];
+            }
+        }
+
+        const namer = new FancyColorNamer();
+        const hueSlider = document.getElementById('hueSlider');
+        const satSlider = document.getElementById('satSlider');
+        const lightSlider = document.getElementById('lightSlider');
+        const satValue = document.getElementById('satValue');
+        const lightValue = document.getElementById('lightValue');
+        const colorInput = document.getElementById('colorInput');
+        const colorPreviewLarge = document.getElementById('colorPreviewLarge');
+        const listSelect = document.getElementById('listSelect');
+        const findBtn = document.getElementById('findBtn');
+        const result = document.getElementById('result');
+        const error = document.getElementById('error');
+
+        let currentH = 10;
+        let currentS = 100;
+        let currentL = 50;
+
+        function updateColor() {
+            currentH = parseInt(hueSlider.value);
+            currentS = parseInt(satSlider.value);
+            currentL = parseInt(lightSlider.value);
+
+            const hslColor = `hsl(${currentH}, ${currentS}%, ${currentL}%)`;
+            colorInput.value = hslColor;
+            colorPreviewLarge.style.backgroundColor = hslColor;
+            colorPreviewLarge.textContent = hslColor;
+
+            // Update slider backgrounds
+            document.documentElement.style.setProperty('--current-hue', currentH);
+            document.documentElement.style.setProperty('--current-sat', currentS + '%');
+
+            satValue.textContent = currentS + '%';
+            lightValue.textContent = currentL + '%';
+        }
+
+        hueSlider.addEventListener('input', updateColor);
+        satSlider.addEventListener('input', updateColor);
+        lightSlider.addEventListener('input', updateColor);
+
+        findBtn.addEventListener('click', async () => {
+            const list = listSelect.value;
+
+            error.classList.remove('show');
+            result.classList.remove('show');
+            findBtn.disabled = true;
+            findBtn.textContent = 'Finding...';
+
+            try {
+                const colorData = await namer.translate(currentH, currentS, currentL, list);
+                displayResult(colorData);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                findBtn.disabled = false;
+                findBtn.textContent = 'Find Fancy Name';
+            }
+        });
+
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('show');
+            result.classList.remove('show');
+        }
+
+        function displayResult(data) {
+            document.getElementById('colorPreview').style.backgroundColor = data.hex;
+            document.getElementById('colorName').textContent = data.name;
+            document.getElementById('hexValue').textContent = data.hex;
+            document.getElementById('rgbValue').textContent =
+                `${data.rgb.r}, ${data.rgb.g}, ${data.rgb.b}`;
+            document.getElementById('hslValue').textContent =
+                `${Math.round(data.hsl.h)}°, ${Math.round(data.hsl.s)}%, ${Math.round(data.hsl.l)}%`;
+            document.getElementById('distanceValue').textContent =
+                data.distance.toFixed(2);
+
+            result.classList.add('show');
+        }
+
+        // Initial update
+        updateColor();
+    </script>
+</body>
+</html>

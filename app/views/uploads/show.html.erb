@@ -1,0 +1,21 @@
+<h1>Upload here</h1>
+
+<%= form_with(url: activities_path, method: :post) do |f| %>
+    <%= f.file_field :files, multiple: true  %>
+    <%= f.submit %>
+<% end %>
+
+<div data-controller="bulk-upload">
+  <div class="border-2 border-dashed border-gray-300 p-10 text-center rounded-lg">
+    <p>Drag and drop GPX files here or</p>
+    <input type="file" multiple
+           data-bulk-upload-target="input"
+           data-action="change->bulk-upload#upload"
+           class="hidden" id="gpx-upload">
+    <label for="gpx-upload" class="cursor-pointer text-blue-600 font-bold underline">
+      Browse Files
+    </label>
+  </div>
+
+  <div data-bulk-upload-target="list" class="mt-4"></div>
+</div>
