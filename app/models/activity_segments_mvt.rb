@@ -1,4 +1,4 @@
-class ActivityMvt < ApplicationRecord
+class ActivitySegmentsMvt < ApplicationRecord
     self.primary_key = :id
 
     def self.refresh(concurrently: false)
@@ -18,7 +18,7 @@ class ActivityMvt < ApplicationRecord
             SELECT
               id,
               ST_AsMVTGeom(geom, ST_TileEnvelope($1, $2, $3)) AS mvt_geom
-            FROM activity_mvts
+            FROM activity_segments_mvts
             WHERE zoom_level = $1
               AND geom && ST_TileEnvelope($1, $2, $3)
           ) AS tile
