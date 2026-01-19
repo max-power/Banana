@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_17_101922) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_19_155008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
@@ -51,6 +51,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_17_101922) do
     t.decimal "distance", precision: 15, scale: 3
     t.integer "elapsed_time"
     t.integer "elevation_gain"
+    t.integer "elevation_loss"
     t.datetime "end_time"
     t.integer "moving_time"
     t.string "name"
@@ -68,6 +69,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_17_101922) do
     t.index ["user_id"], name: "index_activities_on_user_id"
   end
 
+  create_table "activity_segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.datetime "created_at", null: false
+    t.float "distance_m"
+    t.datetime "end_time"
+    t.geometry "geom", limit: {srid: 4326, type: "line_string", has_z: true}, null: false
+    t.integer "moving_time_s"
+    t.integer "segment_index", null: false
+    t.datetime "start_time"
+    t.datetime "updated_at", null: false
+    t.index ["activity_id", "segment_index"], name: "idx_activity_segments_activity_order", unique: true
+    t.index ["activity_id"], name: "index_activity_segments_on_activity_id"
+    t.index ["geom"], name: "index_activity_segments_on_geom", using: :gist
+    t.index ["start_time", "end_time"], name: "idx_activity_segments_time_range"
+    t.check_constraint "st_npoints(geom) >= 2", name: "activity_segments_min_points"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -80,6 +98,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_17_101922) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "activities", column: "tour_id"
   add_foreign_key "activities", "users"
+  add_foreign_key "activity_segments", "activities"
 
   create_view "activity_mvts", materialized: true, sql_definition: <<-SQL
       WITH zoom_levels AS (
@@ -100,4 +119,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_17_101922) do
   add_index "activity_mvts", ["id", "zoom_level"], name: "idx_activities_mvt_unique", unique: true
   add_index "activity_mvts", ["zoom_level"], name: "index_activity_mvts_on_zoom_level"
 
+  create_view "activity_segments_mvts", materialized: true, sql_definition: <<-SQL
+      WITH zoom_levels AS (
+           SELECT generate_series(0, 15) AS z
+          )
+   SELECT s.id,
+      z.z AS zoom_level,
+          CASE
+              WHEN (z.z < 10) THEN st_simplify(st_transform(s.geom, 3857), (200)::double precision)
+              WHEN (z.z < 13) THEN st_simplify(st_transform(s.geom, 3857), (50)::double precision)
+              ELSE st_transform(s.geom, 3857)
+          END AS geom
+     FROM (activity_segments s
+       CROSS JOIN zoom_levels z)
+    WHERE ((s.geom IS NOT NULL) AND (NOT st_isempty(s.geom)) AND (st_length(st_transform(s.geom, 3857)) > (
+          CASE
+              WHEN (z.z <= 7) THEN 500
+              WHEN (z.z <= 10) THEN 100
+              ELSE 0
+          END)::double precision));
+  SQL
 end

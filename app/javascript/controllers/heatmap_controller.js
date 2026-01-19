@@ -124,7 +124,7 @@ export default class extends Controller {
       id: "heatmap-vector-tiles",
       type: "line",
       source: "postgis-vector-tiles",
-      "source-layer": "activities",
+      "source-layer": "segments",
       layout: {
         "line-join": "round",
         "line-cap": "round",

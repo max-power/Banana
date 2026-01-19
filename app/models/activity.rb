@@ -1,6 +1,7 @@
 class Activity < ApplicationRecord
     belongs_to :user
     has_one_attached :file #, service: :local, analyzable: true
+    has_many :activity_segments, dependent: :destroy
 
     scope :chronologically, -> { order(:start_time, :id) }
     scope :reverse_chronologically, -> { order(start_time: :desc, id: :desc) }
@@ -9,9 +10,21 @@ class Activity < ApplicationRecord
     after_touch :sync_metadata_from_file
 
     scope :with_geojson, ->(tolerance = 0.0001) {
-        select(arel_table[Arel.star]) # Select all original columns
-            .select("ST_AsGeoJSON(ST_Simplify(track::geometry, #{connection.quote(tolerance)})) AS geojson_path")
+      select(arel_table[Arel.star])
+        .select(
+          <<~SQL.squish
+            ST_AsGeoJSON(
+                ST_Simplify(
+                  ST_LineMerge(ST_Collect(activity_segments.geom)),
+                  #{connection.quote(tolerance)}
+                )
+            ) AS geojson_path
+          SQL
+        )
+        .joins(:activity_segments)
+        .group("#{table_name}.id")
     }
+
 
     #  scope :tours, -> { where.not(tour_id: nil) }
 
@@ -38,41 +51,46 @@ class Activity < ApplicationRecord
     def sync_metadata_from_file(force: false)
         return unless file.attached? && (force || file.analyzed?)
 
-        # Extract data from the blob's metadata hash
         meta = file.blob.metadata
-
-        if meta[:coordinates].present?
-            rgeo_points = meta[:coordinates].map { |lat, lon, ele| Geo.point(lon, lat, ele) }
-        end
 
         update_columns(
             name:           meta[:activity_name],
             activity_type:  meta[:activity_type],
             distance:       meta[:distance_m],
             elevation_gain: meta[:elevation_gain_m],
-            start_time:     (Time.at(meta[:time_start]) if meta[:time_start]),
-            end_time:       (Time.at(meta[:end_time]) if meta[:end_time]),
+            elevation_loss: meta[:elevation_loss_m],
+            start_time:     Time.at(meta[:time_start]),
+            end_time:       Time.at(meta[:time_end]),
             moving_time:    meta[:time_moving_s],
             elapsed_time:   meta[:time_elapsed_s],
-            # average_speed:  meta[:elevation_gain_m],
-            track:          Geo.line_string(rgeo_points)
         )
+
+        insert_segments_from_gpx(meta[:segments])
     end
+
+    def insert_segments_from_gpx(segments_meta)
+        # Delete old segments to avoid duplicates
+        activity_segments.delete_all
+
+        segments_data = Array(segments_meta).map do |seg|
+            coords  = seg[:coordinates].map { |lat, lon, ele| Geo.point(lon, lat, ele) }
+            geom = Geo.line_string(coords) if coords.size > 1
+            next unless geom # skip segments with < 2 points
+
+            {
+                activity_id:    id,
+                segment_index:  seg[:index],
+                start_time:     Time.at(seg[:start_time]),
+                end_time:       Time.at(seg[:end_time]),
+                distance_m:     seg[:distance_m],
+                moving_time_s:  seg[:moving_time_s],
+                geom:           geom,
+                created_at:     Time.current,
+                updated_at:     Time.current
+            }
+        end.compact
+
+        ActivitySegment.insert_all!(segments_data) if segments_data.any?
+    end
+
 end
-
-
-# def simplified_geojson(precision = 0.0001)
-#   # path::geometry converts from 'geography' to 'geometry' for the function
-#   self.class.where(id: id)
-#             .select("ST_AsGeoJSON(ST_Simplify(path::geometry, #{precision})) as geo")
-#             .first.geo_path
-# end
-
-# private
-
-# def gpx_file_format
-#   return unless gpx_file.attached?
-#   unless gpx_file.content_type == Mime[:gpx]
-#     errors.add(:gpx_file, 'must be a GPX file')
-#   end
-# end

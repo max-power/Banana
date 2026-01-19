@@ -15,7 +15,7 @@ export default class extends Controller {
       style: "https://tiles.openfreemap.org/styles/liberty",
       attributionControl: false,
       zoom: 1,
-      interactive: false,
+      //interactive: false,
     });
 
     this.map.on("load", () => this.addRoute());
@@ -50,14 +50,16 @@ export default class extends Controller {
   fitBounds(e) {
     if (e.sourceId === "route" && e.isSourceLoaded) {
       const coords = e.source.data.coordinates;
-
       if (!coords || coords.length === 0) return;
 
-      const bounds = coords.reduce(
-        (acc, coord) => {
-          return acc.extend(coord);
-        },
-        new maplibregl.LngLatBounds(coords[0], coords[0]),
+      // Flatten MultiLineString to a simple array of [lon, lat]
+      const flatCoords = coords.flatMap((segment) =>
+        segment.map((coord) => [coord[0], coord[1]]),
+      );
+
+      const bounds = flatCoords.reduce(
+        (acc, coord) => acc.extend(coord),
+        new maplibregl.LngLatBounds(flatCoords[0], flatCoords[0]),
       );
 
       this.map.fitBounds(bounds, {

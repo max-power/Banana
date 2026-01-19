@@ -19,7 +19,7 @@ class TilesController < ApplicationController
     def mvt_tile(tile)
         cache_key = "#{Current.user.id}/#{tile.cache_key}"
         #fetched_tile = Rails.cache.fetch(cache_key, expires_in: 24.hours) do
-            #fetched_tile = mvt_tile_query(tile)
+            #fetched_tile = fetch_segment_data(tile)
             fetched_tile = fetch_tile_data(tile)
         #end
         if fetched_tile.present?
@@ -29,18 +29,54 @@ class TilesController < ApplicationController
         end
     end
 
+    def fetch_segment_data(tile)
+        sql = <<~SQL
+        WITH clipped AS (
+          SELECT
+            ST_AsMVTGeom(
+                CASE
+                    WHEN $1 < 7  THEN ST_Simplify(ST_Transform(s.geom, 3857), 450)
+                    WHEN $1 < 10 THEN ST_Simplify(ST_Transform(s.geom, 3857), 100)
+                    WHEN $1 < 12 THEN ST_Simplify(ST_Transform(s.geom, 3857), 50)
+                    ELSE ST_Transform(s.geom, 3857)
+                END,
+
+              ST_TileEnvelope($1, $2, $3),
+              4096,
+              256,
+              true
+            ) AS geom
+          FROM activity_segments s
+          WHERE s.geom && ST_Transform(ST_TileEnvelope($1, $2, $3), 4326)
+        )
+        SELECT ST_AsMVT(clipped, 'segments') AS mvt
+        FROM clipped
+        WHERE geom IS NOT NULL;
+        SQL
+
+        result = ActiveRecord::Base.connection.exec_query(
+            sql,
+            "segments_mvt",
+            [tile.z, tile.x, tile.y]
+        )
+
+        raw_data = result.rows.first&.first
+
+        raw_data ? ActivitySegmentsMvt.connection.unescape_bytea(raw_data) : nil
+    end
+
     def fetch_tile_data(tile)
         #return ActivityMvt.as_vector_tile(tile)
         query = <<~SQL
-          SELECT ST_AsMVT(tile, 'activities')
+          SELECT ST_AsMVT(tile, 'segments')
           FROM (
             SELECT id, ST_AsMVTGeom(geom, ST_TileEnvelope($1, $2, $3)) AS mvt_geom
-            FROM activity_mvts
+            FROM activity_segments_mvts
             WHERE zoom_level = $1 AND geom && ST_TileEnvelope($1, $2, $3)
           ) AS tile
         SQL
 
-        result = ActivityMvt.connection.exec_query(
+        result = ActivitySegmentsMvt.connection.exec_query(
           query,
           "MVT Tile Fetch",
           [tile.z, tile.x, tile.y]
@@ -48,8 +84,7 @@ class TilesController < ApplicationController
 
         raw_data = result.rows.first&.first
 
-        raw_data ? ActivityMvt.connection.unescape_bytea(raw_data) : nil
-
+        raw_data ? ActivitySegmentsMvt.connection.unescape_bytea(raw_data) : nil
 
     end
 
