@@ -9,35 +9,27 @@ module ApplicationHelper
     "swimming" => "hsl(185 80% 42%)",
   }.freeze
 
-  def day_bubble_style(activities, max_dist)
-    dist = activities.sum(&:distance).to_f
-    size = (28 + 32 * Math.sqrt(dist / [ max_dist, 1 ].max)).round
-
-    by_type = activities.group_by { |a| a.activity_type.to_s }
-                        .transform_values { |acts| acts.sum(&:distance).to_f }
-    total = by_type.values.sum.to_f
-
-    bg = if by_type.size == 1
-      ACTIVITY_TYPE_COLORS.fetch(by_type.keys.first, ACTIVITY_TYPE_COLORS["cycling"])
-    else
-      stops, pct = [], 0.0
-      by_type.each do |type, d|
-        color    = ACTIVITY_TYPE_COLORS.fetch(type, ACTIVITY_TYPE_COLORS["cycling"])
-        next_pct = (pct + d / total * 100).round(2)
-        stops << "#{color} #{pct}% #{next_pct}%"
-        pct = next_pct
-      end
-      "conic-gradient(#{stops.join(', ')})"
-    end
-
-    "width: #{size}px; background: #{bg};"
+  def day_bubble_style(type_activities, max_dist)
+    dist  = type_activities.sum(&:distance).to_f
+    size  = (20 + 28 * Math.sqrt(dist / [ max_dist, 1 ].max)).round
+    color = ACTIVITY_TYPE_COLORS.fetch(type_activities.first&.activity_type.to_s, ACTIVITY_TYPE_COLORS["cycling"])
+    "width: #{size}px; background: #{color};"
   end
 
   def max_day_distance(activities)
-    activities.group_by { |a| a.start_time&.to_date }
+    activities.group_by { |a| [ a.start_time&.to_date, a.activity_type ] }
               .values
               .map { |acts| acts.sum(&:distance) }
               .max.to_f
+  end
+
+  def week_range_label(days)
+    first, last = days.first, days.last
+    if first.month == last.month
+      "#{first.strftime('%b')} #{first.day}–#{last.day}"
+    else
+      "#{first.strftime('%b')} #{first.day} – #{last.strftime('%b')} #{last.day}"
+    end
   end
   def format_distance(meters)
     return "—" unless meters

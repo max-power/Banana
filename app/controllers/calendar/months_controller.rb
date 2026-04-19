@@ -6,7 +6,7 @@ class Calendar::MonthsController < ApplicationController
     @year  = Tempora::Year.new(params[:year])
     @month = Tempora::Month.new(params[:year], params[:month])
     #range = Date.new(@year, @month).all_month
-    @activities = Current.user.activities.with_map_geojson.within_time_range(@month.range).chronologically
+    @activities = Current.user.activities.where(type: nil).with_map_geojson.within_time_range(@month.range).chronologically
     @statistics = statistics
   end
 
