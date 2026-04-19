@@ -12,13 +12,10 @@ class ToursController < ApplicationController
 
       format.geojson do
         geojson = @tour.geojson_path
-        activities_by_date = @tour.activities.group_by { |a| a.start_time&.to_date }
-        waypoints = activities_by_date.each_with_index.flat_map do |(_, day_activities), day_idx|
-          day_activities.filter_map do |activity|
-            start_coord, end_coord = activity.map_endpoints
-            next unless start_coord
-            { coord: start_coord, end_coord: end_coord, label: "Day #{day_idx + 1}" }
-          end
+        waypoints = @tour.activities.filter_map do |activity|
+          start_coord, end_coord = activity.map_endpoints
+          next unless start_coord
+          { start: start_coord, end: end_coord }
         end
         render json: {
           type: "Feature",
