@@ -9,7 +9,25 @@ class ToursController < ApplicationController
   def show
     respond_to do |format|
       format.html
-      format.geojson { render json: @tour.geojson_path }
+
+      format.geojson do
+        geojson = @tour.geojson_path
+        render json: {
+          type: "Feature",
+          geometry: geojson ? JSON.parse(geojson) : nil,
+          properties: {},
+        }
+      end
+
+      format.png do
+        return head :not_found unless StaticMapService.available?
+        cache_key = "tour_map_png/v1/#{@tour.id}/#{@tour.updated_at.to_i}"
+        png = Rails.cache.fetch(cache_key, expires_in: 7.days) do
+          StaticMapService.new(@tour).render
+        end
+        return head :not_found unless png
+        send_data png, type: "image/png", disposition: "inline"
+      end
     end
   end
 
