@@ -1,4 +1,9 @@
 class SharesController < ApplicationController
+  def embed
+    @record = Activity.find_by!(share_token: params[:token])
+    render layout: "embed"
+  end
+
   def show
     @record = Activity.find_by!(share_token: params[:token])
     @owner  = @record.user

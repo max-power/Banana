@@ -1,0 +1,41 @@
+<div class="embed-card">
+  <div class="embed-map">
+    <% if StaticMapService.available? %>
+      <%= image_tag shared_activity_url(@record.share_token, format: :png), alt: "" %>
+    <% else %>
+      <%= activity_map_svg(@record) %>
+    <% end %>
+  </div>
+
+  <div class="embed-body-inner">
+    <div class="embed-meta">
+      <span class="embed-type">
+        <% if @record.is_a?(Tour) %>
+          Tour &middot; <%= pluralize(@record.days, "day") %>
+        <% else %>
+          <%= @record.activity_type&.humanize %>
+        <% end %>
+      </span>
+      <span class="embed-date"><%= @record.start_time ? l(@record.start_time, format: :short) : "" %></span>
+    </div>
+
+    <h2 class="embed-title"><%= @record.name.presence || "Untitled" %></h2>
+
+    <dl class="embed-stats">
+      <div>
+        <dt>Distance</dt>
+        <dd><%= format_distance(@record.distance) %></dd>
+      </div>
+      <div>
+        <dt>Elevation</dt>
+        <dd>↑ <%= format_elevation(@record.elevation_gain) %></dd>
+      </div>
+      <div>
+        <dt>Time</dt>
+        <dd><%= format_duration(@record.moving_time) %></dd>
+      </div>
+    </dl>
+
+    <%= link_to "View activity →", shared_activity_url(@record.share_token), class: "embed-cta", target: "_blank" %>
+  </div>
+</div>
