@@ -5,6 +5,7 @@ class Activity < ApplicationRecord
 
   belongs_to :user
   belongs_to :duplicate_of, class_name: "Activity", optional: true
+  belongs_to :tour, optional: true
   has_one_attached :file #, service: :local, analyzable: true
   has_many :activity_segments, dependent: :destroy
   has_secure_token :share_token

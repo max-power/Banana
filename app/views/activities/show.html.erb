@@ -29,6 +29,12 @@
     </nav>
   </header>
 
+  <% if @activity.tour %>
+    <div class="tour-notice">
+      Part of <%= link_to @activity.tour.name.presence || "a tour", tour_path(@activity.tour) %> &rarr;
+    </div>
+  <% end %>
+
   <% if @activity.duplicate_of %>
     <div class="duplicate-warning">
       ⚠ This activity looks like a duplicate of <%= link_to @activity.duplicate_of.name.presence || "another activity", @activity.duplicate_of %>.
