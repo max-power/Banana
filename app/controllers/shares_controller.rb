@@ -34,9 +34,11 @@ class SharesController < ApplicationController
 
       format.png do
         return head :not_found unless StaticMapService.available?
-        cache_key = "share_map_png/v1/#{@record.id}/#{@record.updated_at.to_i}"
+        record = @record.is_a?(Tour) ? @record :
+                   Activity.where(type: nil).with_geojson(0).find_by!(share_token: params[:token])
+        cache_key = "share_map_png/v1/#{record.id}/#{record.updated_at.to_i}"
         png = Rails.cache.fetch(cache_key, expires_in: 7.days) do
-          StaticMapService.new(@record).render
+          StaticMapService.new(record).render
         end
         return head :not_found unless png
         send_data png, type: "image/png", disposition: "inline"
