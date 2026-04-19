@@ -1703,7 +1703,7 @@ details[open] > .tour-card-summary::after {
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 .icon-activity-end {
-  background: conic-gradient(#000 25%, #fff 25% 50%, #000 50% 75%, #fff 75%) 0 0 / 6px 6px;
+  background: conic-gradient(#000 25%, #fff 25% 50%, #000 50% 75%, #fff 75%) 0 0 / 5px 5px;
 }
 
 .icon-tour-waypoint {
@@ -1725,7 +1725,7 @@ details[open] > .tour-card-summary::after {
 }
 
 .icon-tour-waypoint--end {
-  background: conic-gradient(#000 25%, #fff 25% 50%, #000 50% 75%, #fff 75%) 0 0 / 6px 6px;
+  background: conic-gradient(#000 25%, #fff 25% 50%, #000 50% 75%, #fff 75%) 0 0 / 5px 5px;
   color: white;
   text-shadow: 0 0 2px black, 0 0 2px black, 0 0 2px black;
 }
