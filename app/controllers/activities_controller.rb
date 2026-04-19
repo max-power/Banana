@@ -30,10 +30,11 @@ class ActivitiesController < ApplicationController
       end
 
       format.png do
+        return head :not_found unless StaticMapService.available?
         @activity = find_viewable_activity(with_geojson: true)
         return head :not_found unless @activity
 
-        cache_key = "activity_map_png/v5/#{@activity.id}/#{@activity.updated_at.to_i}"
+        cache_key = "activity_map_png/v6/#{@activity.id}/#{@activity.updated_at.to_i}"
         png = Rails.cache.fetch(cache_key, expires_in: 7.days) do
           StaticMapService.new(@activity).render
         end

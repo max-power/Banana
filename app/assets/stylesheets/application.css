@@ -573,10 +573,11 @@ a:has(.month) {
   display: flex;
   align-items: stretch;
 
-  svg {
+  svg, img {
     width: 100%;
     height: 100%;
     display: block;
+    object-fit: cover;
   }
 }
 
