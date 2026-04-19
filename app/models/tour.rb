@@ -52,14 +52,15 @@ class Tour < Activity
 
     quoted = activity_ids.map { |id| ActiveRecord::Base.connection.quote(id) }.join(",")
     result = ActiveRecord::Base.connection.execute(<<~SQL)
-    SELECT ST_AsGeoJSON(
-      ST_Simplify(
-        ST_Collect(s.geom ORDER BY s.segment_index),
-        0.0001
-      )
-    ) AS geojson_path
-    FROM activity_segments s
-    WHERE s.activity_id IN (#{quoted})
+      SELECT ST_AsGeoJSON(
+        ST_Simplify(
+          ST_Collect(s.geom ORDER BY a.start_time, s.segment_index),
+          0.0001
+        )
+      ) AS geojson_path
+      FROM activity_segments s
+      JOIN activities a ON a.id = s.activity_id
+      WHERE s.activity_id IN (#{quoted})
     SQL
     result.first&.dig("geojson_path")
   end
