@@ -9,7 +9,7 @@ class GPXExporter
     builder = Nokogiri::XML::Builder.new(encoding: "UTF-8") do |xml|
       xml.gpx(
         version: "1.1",
-        creator: "bike-activities",
+        creator: "Banana",
         xmlns: "http://www.topografix.com/GPX/1/1",
         "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
         "xsi:schemaLocation": "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
