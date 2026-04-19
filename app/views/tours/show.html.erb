@@ -95,11 +95,14 @@
 
     <section class="tour-days">
       <h2>Days</h2>
-      <ul class="activity-feed">
-        <% @tour.activities.each_with_index do |activity, i| %>
-          <%= render "activities/activity", activity: activity, day_label: "Day #{i + 1}" %>
-        <% end %>
-      </ul>
+      <% @tour.activities.group_by { |a| a.start_time&.to_date }.each_with_index do |(date, activities), i| %>
+        <h3 class="tour-day-heading">Day <%= i + 1 %><% if date %> &middot; <span class="tour-day-date"><%= l(date, format: :long) %></span><% end %></h3>
+        <ul class="activity-feed">
+          <% activities.each do |activity| %>
+            <%= render "activities/activity", activity: activity %>
+          <% end %>
+        </ul>
+      <% end %>
     </section>
   <% else %>
     <p class="empty-state">
