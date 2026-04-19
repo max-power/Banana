@@ -91,4 +91,16 @@ module ApplicationHelper
       end.join(" ")
     end.join(" ")
   end
+
+  def activity_map_png(activity)
+    image_tag activity_path(activity, format: :png), loading: "lazy", alt: ""
+  end
+
+  def activity_map_svg(activity)
+    return unless (d = activity_svg_path(activity.geojson_path))
+    content_tag(:svg, viewBox: "0 0 200 100", xmlns: "http://www.w3.org/2000/svg", aria_hidden: true) do
+      content_tag(:path, "", d: d, fill: "none", stroke: "currentColor",
+                            "stroke-width": "2.5", "stroke-linecap": "round", "stroke-linejoin": "round")
+    end
+  end
 end
