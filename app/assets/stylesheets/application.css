@@ -1417,6 +1417,26 @@ details[open] > .tour-card-summary::after {
   margin-block-end: 0.5rem;
 }
 
+.tour-day-heading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #808080;
+  margin-block: 1.25rem 0.5rem;
+
+  &:first-child {
+    margin-block-start: 0;
+  }
+
+  .tour-day-date {
+    font-weight: normal;
+  }
+}
+
+.tour-days .activity-feed {
+  gap: 0.5rem;
+}
+
 /* Auth form */
 .auth-form {
   max-width: 360px;
