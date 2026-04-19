@@ -77,3 +77,5 @@ gem "haversine", "~> 0.3.2"
 gem "scenic", "~> 1.9"
 
 gem "pagy", "~> 43.5"
+
+gem "libgd-gis"
