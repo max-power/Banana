@@ -135,15 +135,31 @@ export default class extends Controller {
     if (!bounds.isEmpty()) this.map.fitBounds(bounds, { padding: 50, animate: false });
   }
 
-  addStartEndMarkers({ start, end } = {}) {
-    if (start) this.createMarker(start, "icon-activity-start");
-    if (end)   this.createMarker(end,   "icon-activity-end");
+  addStartEndMarkers({ start, end, waypoints } = {}) {
+    if (waypoints?.length) {
+      waypoints.forEach(({ coord, end_coord, label }, i) => {
+        const isFirst = i === 0;
+        const isLast  = i === waypoints.length - 1 && waypoints.length > 1;
+        this.createWaypointMarker(coord, label, isFirst ? "start" : "mid");
+        if (isLast && end_coord) this.createMarker(end_coord, "icon-activity-end");
+      });
+    } else {
+      if (start) this.createMarker(start, "icon-activity-start");
+      if (end)   this.createMarker(end,   "icon-activity-end");
+    }
   }
 
   createMarker(coord, iconClass) {
     const el = document.createElement("div");
     el.className = iconClass;
     new maplibregl.Marker({ element: el }).setLngLat(coord).addTo(this.map);
+  }
+
+  createWaypointMarker(coord, label, type) {
+    const el = document.createElement("div");
+    el.className = `icon-tour-waypoint icon-tour-waypoint--${type}`;
+    el.textContent = label;
+    new maplibregl.Marker({ element: el, anchor: "bottom" }).setLngLat(coord).addTo(this.map);
   }
 
   addRouteLayerArrows() {
