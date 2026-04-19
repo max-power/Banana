@@ -15,6 +15,8 @@
       <% end %>
     </div>
     <nav class="activity-actions">
+      <button class="share-btn" data-share-url="<%= shared_activity_url(@tour.share_token) %>"
+              onclick="navigator.clipboard.writeText(this.dataset.shareUrl).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Share', 2000) })">Share</button>
       <%= link_to "Edit", edit_tour_path(@tour) %>
       <%= link_to "← Back", activities_path %>
     </nav>
@@ -94,7 +96,7 @@
     </div>
 
     <section class="tour-days">
-      <h2>Days</h2>
+      <h2>Activities</h2>
       <% @tour.activities.group_by { |a| a.start_time&.to_date }.each_with_index do |(date, activities), i| %>
         <h3 class="tour-day-heading">Day <%= i + 1 %><% if date %> &middot; <span class="tour-day-date"><%= l(date, format: :long) %></span><% end %></h3>
         <ul class="activity-feed">

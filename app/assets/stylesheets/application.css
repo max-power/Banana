@@ -1647,9 +1647,42 @@ details[open] > .tour-card-summary::after {
 }
 
 /* Share link on activity show */
-.share-link {
+.share-btn {
   font-size: 0.8em;
   color: #808080;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover { color: var(--brand); }
+}
+
+.share-embed {
+  margin-block-start: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.share-embed-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+.share-embed-code {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f8f8f8;
+  color: #555;
+  cursor: text;
 }
 
 .icon-activity-start,
