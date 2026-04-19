@@ -78,4 +78,6 @@ gem "scenic", "~> 1.9"
 
 gem "pagy", "~> 43.5"
 
-gem "libgd-gis"
+# Optional: enables static map PNG export at /activities/:id.png
+# Requires libgd to be installed (e.g. brew install libgd)
+gem "libgd-gis", require: false

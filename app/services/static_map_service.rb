@@ -1,9 +1,15 @@
-require "gd/gis"
+begin
+  require "gd/gis"
+  GD_GIS_AVAILABLE = true
+rescue LoadError
+  GD_GIS_AVAILABLE = false
+end
 
 class StaticMapService
+  def self.available? = GD_GIS_AVAILABLE
   WIDTH   = 1200
   HEIGHT  = 630
-  PADDING = 0.2  # fraction of bbox range to pad on each side
+  PADDING = 0.08  # fraction of bbox range to pad on each side
 
   STYLE = GD::GIS::Style.new({
     global: { label: false },
@@ -11,7 +17,7 @@ class StaticMapService
   })
 
   TRACK_COLOR = GD::Color.rgba(255, 51, 85, 0)
-  TRACK_WIDTH = 4
+  TRACK_WIDTH = 6
 
   def initialize(activity)
     @activity = activity

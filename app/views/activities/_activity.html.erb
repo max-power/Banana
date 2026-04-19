@@ -1,5 +1,9 @@
 <li class="activity-card" id="<%= dom_id(activity) %>">
-  <% if activity.respond_to?(:geojson_path) && (svg_d = activity_svg_path(activity.geojson_path)) %>
+  <% if StaticMapService.available? %>
+    <div class="activity-card-map">
+      <%= image_tag activity_path(activity, format: :png), loading: "lazy", alt: "" %>
+    </div>
+  <% elsif activity.respond_to?(:geojson_path) && (svg_d = activity_svg_path(activity.geojson_path)) %>
     <div class="activity-card-map">
       <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="<%= svg_d %>" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
