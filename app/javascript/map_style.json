@@ -1,0 +1,66 @@
+{
+  "version": 8,
+  "name": "Strada BaseMap",
+  /*    "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",*/
+  /*    "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",*/
+  "center": [13.41, 52.52],
+  "zoom": 10,
+  "style": "carto-voyager",
+  
+  "sources": {
+    "hillshade-source": {
+      "type": "raster-dem",
+      "encoding": "terrarium",
+      "tiles": [
+        "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+      ],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 14,        
+    },
+    "terrain-source": {
+      "type": "raster-dem",
+      "encoding": "terrarium",
+      "tiles": [
+        "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+      ],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 14,
+    }
+  },
+  "terrain": {
+    "source": "terrain-source", 
+    "exaggeration": 1.5
+  },
+  "layers": [
+    {
+      "id": "heatmap-hillshade-1",
+      "type": "hillshade",
+      "source": "hillshade-source",
+      "layout": {},
+      "paint": {
+        "hillshade-exaggeration": 0.2,
+      }
+    }
+  ],
+  "sky": {
+    "sky-color": "#199EF3",
+    "sky-horizon-blend": 0.5,
+    "horizon-color": "#ffffff",
+    "horizon-fog-blend": 0.5,
+    "fog-color": "#0000ff",
+    "fog-ground-blend": 0.5,
+    "atmosphere-blend": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      0,
+      1,
+      10,
+      1,
+      12,
+      0
+    ]
+  }   
+}

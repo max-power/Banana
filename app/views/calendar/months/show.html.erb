@@ -1,85 +1,67 @@
-<article>
-    <header>
-        <h1>
-            <%= link_to @month.year, year_calendar_path(@month.year) %>
-            <%= @month.month_name %>
-        </h1>
-        <p>
-            <%= link_to @month.prev.month_name, month_calendar_path(@month.prev.year, @month.prev.number) %>
-            <%= link_to @month.next.month_name, month_calendar_path(@month.next.year, @month.next.number) %>
-        </p>
+<% content_for :title, "#{@month.month_name} #{@month.year}" %>
+
+<article class="month-calendar">
+    <header class="month-header-nav">
+        <div class="month-nav">
+            <%= link_to "←", month_calendar_path(@month.prev.year, @month.prev.number) %>
+            <h1><%= link_to @month.year, year_calendar_path(@month.year) %> / <%= @month.month_name %></h1>
+            <%= link_to "→", month_calendar_path(@month.next.year, @month.next.number) %>
+        </div>
+
+        <% total_distance  = @statistics.sum(&:distance) %>
+        <% total_elevation = @statistics.sum(&:elevation_gain) %>
+        <% total_time      = @statistics.sum(&:moving_time) %>
+        <% total_count     = @statistics.sum(&:activities_count) %>
+
+        <% if total_count > 0 %>
+            <dl class="calendar-stats">
+                <div class="stat">
+                    <dt>kilometers</dt>
+                    <dd class="number"><%= number_with_delimiter((total_distance / 1000).round) %></dd>
+                </div>
+                <div class="stat">
+                    <dt>hours</dt>
+                    <dd class="number"><%= (total_time / 3600.0).round %></dd>
+                </div>
+                <div class="stat">
+                    <dt>activities</dt>
+                    <dd class="number"><%= total_count %></dd>
+                </div>
+            </dl>
+        <% end %>
     </header>
 
-    <% @month.each_week do |week| %>
-        <article class="calendar-week">
-            <h2><%= week %></h2>
-            <p><%= l(week.begin, format: :short) %> - <%= l(week.end, format: :short) %></p>
-            <ul>
-            <% week.each_day do |date| %>
-                <li>
-                    <div class="calendar-dayname"><%= Date::ABBR_DAYNAMES[date.wday] %></div>
-                    <% activities = @activities.select { |a| a.start_time.to_date == date } %>
-                    <% if activities.present? %>
-                        <div class="day-bubble"><%= format_distance activities.sum(&:distance) %></div>
-                    <% else %>
-                        <div class="day-rest">Rest</div>
+    <% max_dist = max_day_distance(@activities) %>
+    <div class="month-weeks">
+        <% @month.each_week do |week| %>
+            <div class="calendar-week">
+                <ul>
+                    <% week.each_day do |date| %>
+                        <li class="<%= 'other-month' if date.month != @month.number %>">
+                            <div class="calendar-dayname"><%= Date::ABBR_DAYNAMES[date.wday] %></div>
+                            <% day_activities = @activities.select { |a| a.start_time&.to_date == date } %>
+                            <% if day_activities.any? %>
+                                <div class="day-bubble" style="<%= day_bubble_style(day_activities, max_dist) %>"
+                                     title="<%= day_activities.map(&:activity_type).map(&:to_s).tally.map { |t, n| "#{n}× #{t.presence || 'activity'}" }.join(', ') %> · <%= format_distance(day_activities.sum(&:distance)) %>">
+                                    <%= format_distance day_activities.sum(&:distance) %>
+                                </div>
+                            <% else %>
+                                <div class="day-rest"></div>
+                            <% end %>
+                        </li>
                     <% end %>
-                </li>
-            <% end %>
-            </ul>
-        </article>
+                </ul>
+            </div>
+        <% end %>
+    </div>
+
+    <% if @activities.any? %>
+        <section class="month-activities">
+            <table class="activity-table">
+                <tbody>
+                    <%= render partial: "activities/activity", collection: @activities.where(type: nil), as: :activity %>
+                </tbody>
+            </table>
+        </section>
     <% end %>
-
-    <section class="activities">
-        <%= render partial: "activities/activity_calendar", collection: @activities, as: :activity %>
-    </section>
-
-
 </article>
-
-
-<style>
-.calendar-week {
-    margin-block: 4rem;
-    h2, p {
-        font-weight: 400;
-        font-size: 0.8rem;
-    }
-    h2 {display: none;}
-    ul {
-        list-style: none;
-        margin:0;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        justify-items: center;
-        gap: 1rem;
-    }
-
-    li {
-        display: grid;
-        gap: 1rem;
-        justify-items: center;
-    }
-    .calendar-dayname {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        color: #808080;
-    }
-
-    .day-bubble {
-        background: var(--brand);
-        border-radius: 50vw;
-        width: 70px;
-        aspect-ratio: 1;
-        display: grid;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-    }
-    .day-rest {
-        color: #ccc;
-        font-size: 0.7rem;
-    }
-}
-</style>

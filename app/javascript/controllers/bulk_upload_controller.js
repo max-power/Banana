@@ -2,28 +2,48 @@ import { Controller } from "@hotwired/stimulus";
 import { DirectUpload } from "@rails/activestorage";
 
 export default class extends Controller {
-  static targets = ["input", "list"];
+  static targets = ["input", "list", "dropZone"];
 
   upload(event) {
     const files = Array.from(this.inputTarget.files);
     files.forEach((file) => this.uploadFile(file));
-    // Clear the input so user can drop more
     this.inputTarget.value = "";
   }
 
+  dragover(event) {
+    event.preventDefault();
+    this.dropZoneTarget.classList.add("drop-zone--over");
+  }
+
+  dragleave() {
+    this.dropZoneTarget.classList.remove("drop-zone--over");
+  }
+
+  drop(event) {
+    event.preventDefault();
+    this.dropZoneTarget.classList.remove("drop-zone--over");
+    const files = Array.from(event.dataTransfer.files).filter((f) =>
+      f.name.endsWith(".gpx"),
+    );
+    if (files.length === 0) {
+      this.showDropError("Only .gpx files are supported.");
+      return;
+    }
+    files.forEach((file) => this.uploadFile(file));
+  }
+
   uploadFile(file) {
-    // 1. Create a UI element for this file
-    const item = this.createProgressElement(file);
+    const item = this.createItem(file.name);
     this.listTarget.appendChild(item);
 
-    // 2. Start Direct Upload
     const upload = new DirectUpload(
       file,
       "/rails/active_storage/direct_uploads",
       {
         directUploadWillStoreFileWithXHR: (request) => {
           request.upload.addEventListener("progress", (event) => {
-            this.updateProgress(item, event);
+            const pct = Math.round((event.loaded / event.total) * 100);
+            item.querySelector(".upload-progress").value = pct;
           });
         },
       },
@@ -31,9 +51,9 @@ export default class extends Controller {
 
     upload.create((error, blob) => {
       if (error) {
-        item.querySelector(".status").innerText = "Upload Failed";
+        this.setStatus(item, "error", "Upload failed — " + error);
       } else {
-        // 3. Tell Rails to create the Activity record with the blob signed_id
+        this.setStatus(item, "processing", "Processing…");
         this.createActivity(blob, item);
       }
     });
@@ -44,36 +64,50 @@ export default class extends Controller {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')
-          .content,
+        "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content,
       },
-      body: JSON.stringify({
-        activity: {
-          file: blob.signed_id,
-          name: blob.filename,
-        },
-      }),
+      body: JSON.stringify({ activity: { file: blob.signed_id, name: blob.filename } }),
     })
-      .then((response) => response.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Server error " + r.status);
+        return r.json();
+      })
       .then((data) => {
-        item.querySelector(".status").innerHTML =
-          `<a href="/activities/${data.id}">Show Details</a>`;
+        item.querySelector(".upload-filename").textContent = data.name || blob.filename;
+        let status = `<a href="/activities/${data.id}">View</a>`;
+        if (data.duplicate_of) {
+          status += ` &middot; <span class="upload-warning">⚠ possible duplicate of <a href="/activities/${data.duplicate_of.id}">${data.duplicate_of.name}</a></span>`;
+        }
+        this.setStatus(item, "done", status);
+      })
+      .catch((err) => {
+        this.setStatus(item, "error", "Failed — " + err.message);
       });
   }
 
-  createProgressElement(file) {
-    const template = document.createElement("div");
-    template.className = "upload-item border p-2 mb-2 flex justify-between";
-    template.innerHTML = `
-      <span>${file.name}</span>
-      <progress max="100"></progress>
-      <span class="status">Uploading...</span>
+  createItem(filename) {
+    const li = document.createElement("li");
+    li.className = "upload-item";
+    li.innerHTML = `
+      <span class="upload-filename">${filename}</span>
+      <progress class="upload-progress" max="100" value="0"></progress>
+      <span class="upload-status">Uploading…</span>
     `;
-    return template;
+    return li;
   }
 
-  updateProgress(item, event) {
-    const percent = (event.loaded / event.total) * 100;
-    item.querySelector("progress").value = `${percent}`;
+  setStatus(item, state, html) {
+    const status = item.querySelector(".upload-status");
+    status.innerHTML = html;
+    status.dataset.state = state;
+    if (state !== "processing") item.querySelector(".upload-progress").remove();
+  }
+
+  showDropError(message) {
+    const p = document.createElement("p");
+    p.className = "drop-error";
+    p.textContent = message;
+    this.dropZoneTarget.appendChild(p);
+    setTimeout(() => p.remove(), 3000);
   }
 }

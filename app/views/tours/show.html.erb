@@ -1,0 +1,72 @@
+<% content_for :title, @tour.name.presence || "Tour" %>
+
+<div class="activity-show">
+    <header class="activity-header">
+        <div>
+            <p class="activity-type">Tour &middot; <%= pluralize(@tour.days, "day") %></p>
+            <h1><%= @tour.name.presence || "Untitled Tour" %></h1>
+            <% if @tour.start_time %>
+                <p class="activity-date">
+                    <%= l(@tour.start_time, format: :short) %>
+                    <% if @tour.end_time && @tour.end_time.to_date != @tour.start_time.to_date %>
+                        – <%= l(@tour.end_time, format: :short) %>
+                    <% end %>
+                </p>
+            <% end %>
+        </div>
+        <nav class="activity-actions">
+            <%= link_to "Edit", edit_tour_path(@tour) %>
+            <%= link_to "← Back", activities_path %>
+        </nav>
+    </header>
+
+    <% if @tour.activities.any? %>
+        <figure class="activity-map analyzing-shimmer"
+            data-controller="activity-map"
+            data-activity-map-url-value="<%= tour_url(@tour, format: :geojson) %>"
+            data-activity-map-arrow-url-value="<%= asset_path('arrow-right.svg') %>">
+        </figure>
+
+        <dl class="activity-stats">
+            <div class="stat">
+                <dt>Distance</dt>
+                <dd class="number"><%= format_distance(@tour.distance) %></dd>
+            </div>
+            <div class="stat">
+                <dt>Moving time</dt>
+                <dd class="number"><%= format_duration(@tour.moving_time) %></dd>
+            </div>
+            <div class="stat">
+                <dt>Elevation gain</dt>
+                <dd class="number">↑ <%= format_elevation(@tour.elevation_gain) %></dd>
+            </div>
+            <div class="stat">
+                <dt>Elevation loss</dt>
+                <dd class="number">↓ <%= format_elevation(@tour.elevation_loss) %></dd>
+            </div>
+        </dl>
+
+        <section class="tour-days">
+            <h2>Days</h2>
+            <table class="activity-table">
+                <tbody>
+                    <% @tour.activities.each_with_index do |activity, i| %>
+                        <tr class="activity-row">
+                            <td class="col-type">Day <%= i + 1 %></td>
+                            <td class="col-date number"><%= activity.start_time ? l(activity.start_time, format: :short) : "—" %></td>
+                            <td class="col-name"><%= link_to activity.name.presence || "Untitled", activity_path(activity) %></td>
+                            <td class="col-distance number"><%= format_distance(activity.distance) %></td>
+                            <td class="col-elevation number">↑ <%= format_elevation(activity.elevation_gain) %></td>
+                            <td class="col-duration number"><%= format_duration(activity.moving_time) %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </section>
+    <% else %>
+        <p class="empty-state">
+            No activities in this tour yet.
+            <%= link_to "Add some", edit_tour_path(@tour) %>.
+        </p>
+    <% end %>
+</div>

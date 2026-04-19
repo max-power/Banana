@@ -1,0 +1,38 @@
+<li class="activity-card tour-card" id="<%= dom_id(tour) %>">
+  <details class="tour-card-details">
+    <summary class="tour-card-summary">
+      <% if (svg_d = activity_svg_path(tour.map_geojson)) %>
+        <div class="activity-card-map">
+          <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="<%= svg_d %>" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      <% end %>
+      <div class="activity-card-body">
+        <p class="activity-card-meta">
+          <span class="activity-card-type">Tour &middot; <%= pluralize(tour.days, "day") %></span>
+          <% if tour.start_time %>
+            &middot; <span class="activity-card-date">
+              <%= l(tour.start_time, format: :short) %>
+              <% if tour.end_time && tour.end_time.to_date != tour.start_time.to_date %>
+                – <%= l(tour.end_time, format: :short) %>
+              <% end %>
+            </span>
+          <% end %>
+        </p>
+        <h3 class="activity-card-name"><%= link_to tour.name.presence || "Untitled Tour", tour_path(tour) %></h3>
+        <dl class="activity-card-stats">
+          <div><dt>Distance</dt><dd><%= format_distance(tour.distance) %></dd></div>
+          <div><dt>Elevation</dt><dd>↑ <%= format_elevation(tour.elevation_gain) %></dd></div>
+          <div><dt>Time</dt><dd><%= format_duration(tour.moving_time) %></dd></div>
+        </dl>
+      </div>
+    </summary>
+
+    <ul class="tour-card-activities">
+      <% tour.activities.each do |activity| %>
+        <%= render "activities/activity_row", activity: activity %>
+      <% end %>
+    </ul>
+  </details>
+</li>

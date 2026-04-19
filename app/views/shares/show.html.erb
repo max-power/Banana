@@ -1,0 +1,51 @@
+<% content_for :title, @activity.name.presence || "Activity" %>
+
+<div class="activity-show">
+    <header class="activity-header">
+        <div>
+            <p class="activity-type"><%= @activity.activity_type&.humanize %></p>
+            <h1><%= @activity.name.presence || "Untitled" %></h1>
+            <p class="activity-date"><%= @activity.start_time ? l(@activity.start_time, format: :long) : "—" %></p>
+        </div>
+        <% if @owner.public_profile? %>
+            <nav class="activity-actions">
+                <%= link_to "← #{@owner.email}", public_profile_path(@owner) %>
+            </nav>
+        <% end %>
+    </header>
+
+    <figure class="activity-map analyzing-shimmer"
+        data-controller="activity-map"
+        data-activity-map-url-value="<%= shared_activity_url(@activity.share_token, format: :geojson) %>"
+        data-activity-map-arrow-url-value="<%= asset_path('arrow-right.svg') %>">
+    </figure>
+
+    <dl class="activity-stats">
+        <div class="stat">
+            <dt>Distance</dt>
+            <dd class="number"><%= format_distance(@activity.distance) %></dd>
+        </div>
+        <div class="stat">
+            <dt>Moving time</dt>
+            <dd class="number"><%= format_duration(@activity.moving_time) %></dd>
+        </div>
+        <div class="stat">
+            <dt>Elapsed time</dt>
+            <dd class="number"><%= format_duration(@activity.elapsed_time) %></dd>
+        </div>
+        <div class="stat">
+            <dt>Elevation gain</dt>
+            <dd class="number">↑ <%= format_elevation(@activity.elevation_gain) %></dd>
+        </div>
+        <div class="stat">
+            <dt>Elevation loss</dt>
+            <dd class="number">↓ <%= format_elevation(@activity.elevation_loss) %></dd>
+        </div>
+        <% if @activity.moving_time&.positive? && @activity.distance&.positive? %>
+        <div class="stat">
+            <dt>Avg speed</dt>
+            <dd class="number"><%= format_speed(@activity.distance / @activity.moving_time) %></dd>
+        </div>
+        <% end %>
+    </dl>
+</div>

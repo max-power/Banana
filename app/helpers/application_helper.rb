@@ -1,9 +1,98 @@
 module ApplicationHelper
-    def format_distance(meters)
-        number_to_human(meters, precision: 2, significant: false, units: { unit: "m", thousand: "km" })
+  include Pagy::NumericHelperLoader
+
+  ACTIVITY_TYPE_COLORS = {
+    "cycling"  => "hsl(254 100% 48%)",
+    "running"  => "hsl(20 90% 55%)",
+    "hiking"   => "hsl(140 50% 42%)",
+    "walking"  => "hsl(200 75% 50%)",
+    "swimming" => "hsl(185 80% 42%)",
+  }.freeze
+
+  def day_bubble_style(activities, max_dist)
+    dist = activities.sum(&:distance).to_f
+    size = (28 + 32 * Math.sqrt(dist / [ max_dist, 1 ].max)).round
+
+    by_type = activities.group_by { |a| a.activity_type.to_s }
+                        .transform_values { |acts| acts.sum(&:distance).to_f }
+    total = by_type.values.sum.to_f
+
+    bg = if by_type.size == 1
+      ACTIVITY_TYPE_COLORS.fetch(by_type.keys.first, ACTIVITY_TYPE_COLORS["cycling"])
+    else
+      stops, pct = [], 0.0
+      by_type.each do |type, d|
+        color    = ACTIVITY_TYPE_COLORS.fetch(type, ACTIVITY_TYPE_COLORS["cycling"])
+        next_pct = (pct + d / total * 100).round(2)
+        stops << "#{color} #{pct}% #{next_pct}%"
+        pct = next_pct
+      end
+      "conic-gradient(#{stops.join(', ')})"
     end
 
-    def format_elevation(meters)
-        number_to_human(meters, units: { unit: "m" })
-    end
+    "width: #{size}px; background: #{bg};"
+  end
+
+  def max_day_distance(activities)
+    activities.group_by { |a| a.start_time&.to_date }
+              .values
+              .map { |acts| acts.sum(&:distance) }
+              .max.to_f
+  end
+  def format_distance(meters)
+    return "—" unless meters
+    number_to_human(meters, precision: 2, significant: false, units: { unit: "m", thousand: "km" })
+  end
+
+  def format_elevation(meters)
+    return "—" unless meters
+    number_to_human(meters, units: { unit: "m" })
+  end
+
+  def format_duration(seconds)
+    return "—" unless seconds
+    total = seconds.to_i
+    h = total / 3600
+    m = (total % 3600) / 60
+    s = total % 60
+    h > 0 ? "#{h}:%02d:%02d" % [ m, s ] : "%d:%02d" % [ m, s ]
+  end
+
+  def format_speed(mps)
+    return "—" unless mps&.positive?
+    "#{(mps * 3.6).round(1)} km/h"
+  end
+
+  def activity_svg_path(geojson_str)
+    return nil if geojson_str.blank?
+
+    geojson = JSON.parse(geojson_str)
+    lines = case geojson["type"]
+            when "LineString"      then [ geojson["coordinates"] ]
+            when "MultiLineString" then geojson["coordinates"]
+            else return nil
+            end
+
+    all_pts = lines.flatten(1)
+    xs = all_pts.map { |x, *| x.to_f }
+    ys = all_pts.map { |_, y, *| y.to_f }
+    xmin, xmax = xs.min, xs.max
+    ymin, ymax = ys.min, ys.max
+    w = xmax - xmin
+    h = ymax - ymin
+    return nil if w < 0.00001 || h < 0.00001
+
+    vw, vh, pad = 200.0, 100.0, 8.0
+    scale = [ (vw - pad * 2) / w, (vh - pad * 2) / h ].min
+    ox = (vw - w * scale) / 2.0
+    oy = (vh - h * scale) / 2.0
+
+    lines.map do |pts|
+      pts.each_with_index.map do |(x, y, *), i|
+        px = (ox + (x.to_f - xmin) * scale).round(1)
+        py = (vh - oy - (y.to_f - ymin) * scale).round(1)
+        i.zero? ? "M #{px},#{py}" : "L #{px},#{py}"
+      end.join(" ")
+    end.join(" ")
+  end
 end
