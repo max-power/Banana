@@ -1673,3 +1673,34 @@ details[open] > .tour-card-summary::after {
   background: #fff url(checkered.svg);
   background-size: 18px 18px;
 }
+
+.icon-tour-waypoint {
+  background: white;
+  border: 2px solid #f35;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #f35;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+
+  &::after {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 6px;
+    background: #f35;
+    margin: 1px auto 0;
+  }
+
+  &--start {
+    background: #f35;
+    color: white;
+    border-color: #f35;
+
+    &::after {
+      background: white;
+    }
+  }
+}
