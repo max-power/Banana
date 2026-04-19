@@ -16,6 +16,7 @@
           <div class="download-menu">
             <%= link_to "GPX", export_gpx_activity_path(@activity) %>
             <%= link_to "GeoJSON", export_geojson_activity_path(@activity) %>
+            <%= link_to "Map image", activity_path(@activity, format: :png) %>
             <% if @activity.file.attached? %>
               <%= link_to "Original", export_original_activity_path(@activity) %>
             <% end %>
