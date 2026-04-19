@@ -1,95 +1,95 @@
 module GPX
-    class Cleaner
-        MAX_JUMP_M = 500.0
-        PAUSE_GAP_S = 300 # 5 min
+  class Cleaner
+    MAX_JUMP_M = 500.0
+    PAUSE_GAP_S = 300 # 5 min
 
-        class Counter
-            def initialize    = @counts = Hash.new(0)
-            def inc(key, n=1) = @counts[key] += n
-            def get(key)      = @counts[key]
+    class Counter
+      def initialize    = @counts = Hash.new(0)
+        def inc(key, n=1) = @counts[key] += n
+          def get(key)      = @counts[key]
             def to_h          = @counts
-        end
+            end
 
-        attr_reader :profile, :points, :counter
+            attr_reader :profile, :points, :counter
 
-        def initialize(profile)
-            @profile = profile
-            @counter = Counter.new
-        end
+            def initialize(profile)
+              @profile = profile
+              @counter = Counter.new
+            end
 
-        def segments(points)
-            return [] if points.empty?
-            build_segments(points)
-        end
+            def segments(points)
+              return [] if points.empty?
+              build_segments(points)
+            end
 
-        private
+            private
 
-        def build_segments(points)
-            segments = []
-            current  = []
+            def build_segments(points)
+              segments = []
+              current  = []
 
-            points.each do |point|
+              points.each do |point|
                 if should_split?(current.last, point)
-                    push_segment!(segments, current)
-                    current = []
+                  push_segment!(segments, current)
+                  current = []
                 end
 
                 current << point
+              end
+
+              push_segment!(segments, current)
             end
 
-            push_segment!(segments, current)
-        end
 
+            def should_split?(prev, current)
+              return false unless current
+              return true if prev.nil? || reject_zero_point?(current)
 
-        def should_split?(prev, current)
-            return false unless current
-            return true if prev.nil? || reject_zero_point?(current)
+              line = Line.new(prev, current)
 
-            line = Line.new(prev, current)
-
-            # Check time-based splits
-            if line.duration
+              # Check time-based splits
+              if line.duration
                 return true if reject_time_error?(line.duration)
                 return true if reject_speed_jump?(line.speed)
                 return true if reject_paused?(line)
-            #else
-            #    return true if reject_distance_jump?(line.distance)
+                #else
+                #    return true if reject_distance_jump?(line.distance)
+              end
+
+              # Always check distance jumps
+              return true if reject_distance_jump?(line.distance)
+
+              false
             end
 
-            # Always check distance jumps
-            return true if reject_distance_jump?(line.distance)
+            def push_segment!(segments, current)
+              return if current.size < 2
+              segments << Segment.new(current.dup, segments.size)
+            end
 
-            false
-        end
+            def reject_zero_point?(point)
+              point.zero? && report(:zero_points)
+            end
 
-        def push_segment!(segments, current)
-            return if current.size < 2
-            segments << Segment.new(current.dup, segments.size)
-        end
+            def reject_time_error?(diff)
+              diff <= 0 && report(:time_errors)
+            end
 
-        def reject_zero_point?(point)
-            point.zero? && report(:zero_points)
-        end
+            def reject_speed_jump?(speed)
+              profile && !profile.valid_speed?(speed) && report(:speed_jumps)
+            end
 
-        def reject_time_error?(diff)
-            diff <= 0 && report(:time_errors)
-        end
+            def reject_distance_jump?(dist)
+              dist > MAX_JUMP_M && report(:distance_jumps)
+            end
 
-        def reject_speed_jump?(speed)
-            profile && !profile.valid_speed?(speed) && report(:speed_jumps)
-        end
+            def reject_paused?(line)
+              line.paused?(PAUSE_GAP_S) && report(:pauses)
+            end
 
-        def reject_distance_jump?(dist)
-            dist > MAX_JUMP_M && report(:distance_jumps)
-        end
-
-        def reject_paused?(line)
-            line.paused?(PAUSE_GAP_S) && report(:pauses)
-        end
-
-        def report(key)
-            counter.inc(key)
-            true
-        end
-    end
+            def report(key)
+              counter.inc(key)
+              true
+            end
+  end
 end

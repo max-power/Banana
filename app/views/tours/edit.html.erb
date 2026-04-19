@@ -1,0 +1,10 @@
+<% content_for :title, "Edit #{@tour.name}" %>
+
+<div class="tour-form">
+    <h1>Edit Tour</h1>
+    <%= render "form", tour: @tour, available_activities: @available_activities %>
+    <div class="danger-zone">
+        <%= button_to "Delete tour", tour_path(@tour), method: :delete,
+            data: { turbo_confirm: "Delete \"#{@tour.name}\"? The activities will remain." } %>
+    </div>
+</div>

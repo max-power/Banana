@@ -1,0 +1,37 @@
+<%= form_with model: tour, url: tour.new_record? ? tours_path : tour_path(tour) do |f| %>
+    <div class="field">
+        <%= f.label :name, "Tour name" %>
+        <%= f.text_field :name, required: true, autofocus: true, placeholder: "e.g. Alps 2024" %>
+    </div>
+
+    <div class="field">
+        <%= f.label :description, "Notes (optional)" %>
+        <%= f.text_area :description, rows: 3 %>
+    </div>
+
+    <% if available_activities.any? %>
+        <fieldset class="activity-picker">
+            <legend>Activities</legend>
+            <% available_activities.group_by { |a| a.start_time&.strftime("%B %Y") || "Unknown" }.each do |month, activities| %>
+                <div class="picker-month">
+                    <p class="picker-month-label"><%= month %></p>
+                    <% activities.each do |activity| %>
+                        <label class="picker-row">
+                            <input type="checkbox" name="activity_ids[]" value="<%= activity.id %>"
+                                <%= "checked" if activity.tour_id == tour.id %>>
+                            <span class="picker-name"><%= activity.name.presence || "Untitled" %></span>
+                            <span class="picker-meta number"><%= format_distance(activity.distance) %> &middot; <%= activity.start_time ? l(activity.start_time, format: :short) : "—" %></span>
+                        </label>
+                    <% end %>
+                </div>
+            <% end %>
+        </fieldset>
+    <% else %>
+        <p class="empty-state">No unassigned activities available.</p>
+    <% end %>
+
+    <div class="form-actions">
+        <%= f.submit tour.new_record? ? "Create tour" : "Save tour" %>
+        <%= link_to "Cancel", tour.new_record? ? activities_path : tour_path(tour) %>
+    </div>
+<% end %>

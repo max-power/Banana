@@ -2,137 +2,187 @@ import { Controller } from "@hotwired/stimulus";
 import maplibregl from "maplibre-gl";
 import StyleFlipperControl from "maplibre-gl-style-flipper";
 
-// Connects to data-controller="heatmap"
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
 export default class extends Controller {
-  static targets = ["map"];
+  static targets = ["map", "filterBar"];
   static values = {
-    trackUrl: String,
+    bounds: Array,
     center: Array,
     zoom: Number,
     style: String,
-    lineColor: String,
-    lineWidth: Number,
+    years: Array,
   };
 
   defaults = {
     center: [13.41, 52.52],
     zoom: 10,
-    style: "carto-voyager",
-    lineColor: "#FF3333",
-    lineWidth: 3,
-    lineOpacity: 0.2,
+    style: "carto-dark-nolabels",
   };
 
   mapStyles = {
     "openfreemap-liberty": {
       code: "liberty",
       url: "https://tiles.openfreemap.org/styles/liberty",
-      image: "",
     },
     "carto-voyager": {
       code: "carto-voyager",
       url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/voyager_labels.png",
     },
     "carto-voyager-nolabels": {
       code: "carto-voyager-nolabels",
       url: "https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/voyager_no_labels.png",
     },
     "carto-positron": {
       code: "carto-positron",
       url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/positron_labels.png",
     },
     "carto-positron-nolabels": {
       code: "carto-positron-nolabels",
       url: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/positron_no_labels.png",
     },
     "carto-dark": {
       code: "carto-dark",
       url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/dark_labels.png",
     },
     "carto-dark-nolabels": {
       code: "carto-dark-nolabels",
       url: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/dark_no_labels.png",
     },
   };
 
   connect() {
-    if (!this.map) this.setupMap();
-    this.map.once("load", () => {
-      this.addVectorTiles();
-      //this.addRasterTiles();
-    });
+    this.selectedYear  = null;
+    this.selectedMonth = null;
+    this.buildFilterBar();
+    this.setupMap();
+    this.map.once("load", () => this.addHeatmapTiles());
   }
 
+  // ── Filter UI ─────────────────────────────────────────────────────────────
+
+  buildFilterBar() {
+    const bar = this.filterBarTarget;
+    bar.innerHTML = "";
+
+    const yearRow = document.createElement("div");
+    yearRow.className = "heatmap-filter-row";
+
+    const allBtn = this.makeBtn("All", !this.selectedYear, () => {
+      this.selectedYear  = null;
+      this.selectedMonth = null;
+      this.buildFilterBar();
+      this.refreshTiles();
+    });
+    yearRow.appendChild(allBtn);
+
+    if (this.yearsValue.length > 0) {
+      yearRow.appendChild(this.makeDivider());
+      this.yearsValue.forEach((year) => {
+        const btn = this.makeBtn(year, this.selectedYear === year, () => {
+          if (this.selectedYear === year) {
+            this.selectedYear  = null;
+            this.selectedMonth = null;
+          } else {
+            this.selectedYear  = year;
+            this.selectedMonth = null;
+          }
+          this.buildFilterBar();
+          this.refreshTiles();
+        });
+        yearRow.appendChild(btn);
+      });
+    }
+
+    bar.appendChild(yearRow);
+
+    if (this.selectedYear) {
+      const monthRow = document.createElement("div");
+      monthRow.className = "heatmap-filter-row";
+      MONTHS.forEach((label, i) => {
+        const monthNum = i + 1;
+        const btn = this.makeBtn(label, this.selectedMonth === monthNum, () => {
+          this.selectedMonth = this.selectedMonth === monthNum ? null : monthNum;
+          this.buildFilterBar();
+          this.refreshTiles();
+        });
+        monthRow.appendChild(btn);
+      });
+      bar.appendChild(monthRow);
+    }
+  }
+
+  makeBtn(label, active, onClick) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = label;
+    btn.className = "heatmap-filter-btn" + (active ? " active" : "");
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  makeDivider() {
+    const span = document.createElement("span");
+    span.className = "heatmap-filter-divider";
+    return span;
+  }
+
+  // ── Tile URL ──────────────────────────────────────────────────────────────
+
+  get tileUrl() {
+    const qs = [];
+    if (this.selectedYear)  qs.push(`year=${this.selectedYear}`);
+    if (this.selectedMonth) qs.push(`month=${this.selectedMonth}`);
+    return `/heatmap/{z}/{x}/{y}.png${qs.length ? "?" + qs.join("&") : ""}`;
+  }
+
+  refreshTiles() {
+    if (!this.map.isStyleLoaded()) return;
+    if (this.map.getLayer("heatmap-layer")) this.map.removeLayer("heatmap-layer");
+    if (this.map.getSource("heatmap"))      this.map.removeSource("heatmap");
+    this.addHeatmapTiles();
+  }
+
+  // ── Map setup ─────────────────────────────────────────────────────────────
+
   setupMap() {
+    const bounds = this.hasBoundsValue && this.boundsValue.length === 4
+      ? [[this.boundsValue[0], this.boundsValue[1]], [this.boundsValue[2], this.boundsValue[3]]]
+      : null;
+
     this.map = new maplibregl.Map({
       container: this.mapTarget,
       style: this.getMapStyle().url,
-      center: this.getMapCenter(),
-      zoom: this.getMapZoom(),
-      maxZoom: 15,
+      center: bounds ? undefined : this.getMapCenter(),
+      zoom:   bounds ? undefined : this.getMapZoom(),
+      bounds: bounds || undefined,
+      fitBoundsOptions: { padding: 40 },
+      maxZoom: 16,
     });
     this.map.addControl(new maplibregl.FullscreenControl());
     this.map.addControl(new maplibregl.NavigationControl());
-    this.map.addControl(new maplibregl.GlobeControl());
-    //this.map.addControl(new maplibregl.TerrainControl({ source: "terrain" }));
-    // this.map.addControl(new maplibregl.ScaleControl({ maxWidth: 80, unit: "metric" }));
 
     const styleFlipperControl = new StyleFlipperControl(this.mapStyles);
-    // Set the initial style code
     styleFlipperControl.setCurrentStyleCode(this.getMapStyle().code);
     this.map.addControl(styleFlipperControl, "bottom-left");
   }
 
-  addRasterTiles() {
-    const source_options = {
+  addHeatmapTiles() {
+    this.map.addSource("heatmap", {
       type: "raster",
-      tiles: ["http://localhost:8000/tiles/{z}/{x}/{y}.png"],
+      tiles: [this.tileUrl],
       tileSize: 256,
       minzoom: 0,
       maxzoom: 16,
-    };
-    this.map.on("load", () => {
-      this.map.addSource("heatmap-raster-tiles", source_options);
-      this.map.addLayer({
-        id: "hotpot",
-        type: "raster",
-        source: "heatmap-raster-tiles",
-      });
-    });
-  }
-
-  addVectorTiles() {
-    this.map.addSource("postgis-vector-tiles", {
-      type: "vector",
-      tiles: ["http://localhost:3003/heatmap/{z}/{x}/{y}.mvt"],
-      tileSize: 512,
     });
 
     this.map.addLayer({
-      id: "heatmap-vector-tiles",
-      type: "line",
-      source: "postgis-vector-tiles",
-      "source-layer": "segments",
-      layout: {
-        "line-join": "round",
-        "line-cap": "round",
-      },
+      id: "heatmap-layer",
+      type: "raster",
+      source: "heatmap",
       paint: {
-        "line-opacity": this.getLineOpacity(),
-        "line-color": this.getLineColor(),
-        "line-width": this.getLineWidth(),
+        "raster-opacity": 0.9,
+        "raster-fade-duration": 150,
       },
     });
   }
@@ -148,20 +198,6 @@ export default class extends Controller {
   }
 
   getMapStyle() {
-    return (
-      this.mapStyles[this.styleValue] || this.mapStyles[this.defaults.style]
-    );
-  }
-
-  getLineColor() {
-    return this.lineColorValue || this.defaults.lineColor;
-  }
-
-  getLineWidth() {
-    return this.lineWidthValue || this.defaults.lineWidth;
-  }
-
-  getLineOpacity() {
-    return this.lineOpacityValue || this.defaults.lineOpacity;
+    return this.mapStyles[this.styleValue] || this.mapStyles[this.defaults.style];
   }
 }

@@ -1,1 +1,33 @@
-<h1>Account</h1>
+<% content_for :title, "Account" %>
+
+<div class="account-page">
+    <h1>Account</h1>
+
+    <section class="account-section">
+        <h2>Profile visibility</h2>
+
+        <%= form_with model: Current.user, url: account_path, method: :patch do |f| %>
+            <label class="toggle-label">
+                <%= f.check_box :public_profile, class: "toggle-checkbox" %>
+                Make my profile public
+            </label>
+            <p class="toggle-hint">
+                <% if Current.user.public_profile? %>
+                    Your profile is <strong>public</strong>.
+                    Anyone with the link can browse your activities at
+                    <%= link_to public_profile_url(Current.user), public_profile_url(Current.user), target: "_blank" %>.
+                <% else %>
+                    Your profile is <strong>private</strong>. Only you can see your activities.
+                    Individual rides can still be shared via a private link.
+                <% end %>
+            </p>
+            <%= f.submit "Save", class: "btn-primary" %>
+        <% end %>
+    </section>
+
+    <section class="account-section">
+        <h2>Account</h2>
+        <p class="account-email"><%= Current.user.email %></p>
+        <p class="account-meta">Member since <%= Current.user.created_at.strftime("%B %Y") %></p>
+    </section>
+</div>

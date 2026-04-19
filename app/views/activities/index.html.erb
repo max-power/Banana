@@ -1,3 +1,21 @@
-<h1>Activities</h1>
+<% content_for :title, "Activities" %>
 
-<%= render @activities %>
+<div class="activities-index-header">
+    <h1>Activities</h1>
+    <%= form_with url: activities_path, method: :get, class: "activity-search" do |f| %>
+      <%= f.search_field :q, value: params[:q], placeholder: "Search activities…", class: "activity-search-input" %>
+    <% end %>
+    <%= link_to "+ New Tour", new_tour_path, class: "btn-secondary" %>
+</div>
+
+<div class="activities-index">
+  <% if @activities.empty? %>
+    <p class="empty-state">No activities yet. <%= link_to "Upload a GPX file", upload_path %> to get started.</p>
+  <% else %>
+    <ul class="activity-feed">
+      <%= render @activities %>
+    </ul>
+  <% end %>
+
+  <%= raw @pagy.series_nav if @pagy.pages > 1 %>
+</div>

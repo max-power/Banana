@@ -10,10 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_19_164046) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_19_000003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
+  enable_extension "postgis_raster"
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "blob_id", null: false
@@ -49,24 +50,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_164046) do
     t.datetime "created_at", null: false
     t.text "description"
     t.decimal "distance", precision: 15, scale: 3
+    t.uuid "duplicate_of_id"
     t.integer "elapsed_time"
     t.integer "elevation_gain"
     t.integer "elevation_loss"
     t.datetime "end_time"
+    t.decimal "max_speed", precision: 8, scale: 3
     t.integer "moving_time"
     t.string "name"
+    t.string "share_token", null: false
     t.datetime "start_time"
     t.uuid "tour_id"
     t.geography "track", limit: {srid: 4326, type: "line_string", has_z: true, geographic: true}
-    t.geometry "track_3857", limit: {srid: 3857, type: "line_string", has_z: true}
+    t.geometry "track_3857", limit: {srid: 3857, type: "geometry", has_z: true}
     t.string "type"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
+    t.index ["duplicate_of_id"], name: "index_activities_on_duplicate_of_id"
+    t.index ["share_token"], name: "index_activities_on_share_token", unique: true
     t.index ["tour_id"], name: "index_activities_on_tour_id"
     t.index ["track"], name: "activities_geom_idx", using: :gist
-    t.index ["track_3857"], name: "activities_track_3857_gix", using: :gist
     t.index ["track_3857"], name: "idx_activities_track_3857", using: :gist
     t.index ["user_id"], name: "index_activities_on_user_id"
+  end
+
+  create_table "activity_points", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_segment_id", null: false
+    t.geometry "geom", limit: {srid: 3857, type: "st_point"}, null: false
+    t.index ["activity_segment_id"], name: "idx_activity_points_activity_segment_id"
+    t.index ["geom"], name: "idx_activity_points_geom", using: :gist
   end
 
   create_table "activity_segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -75,20 +87,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_164046) do
     t.float "distance_m"
     t.datetime "end_time"
     t.geometry "geom", limit: {srid: 4326, type: "line_string", has_z: true}, null: false
+    t.virtual "geom_3857", type: :geometry, limit: {srid: 3857, type: "line_string", has_z: true}, as: "st_transform(geom, 3857)", stored: true
     t.integer "moving_time_s"
     t.integer "segment_index", null: false
     t.datetime "start_time"
     t.datetime "updated_at", null: false
     t.index ["activity_id", "segment_index"], name: "idx_activity_segments_activity_order", unique: true
     t.index ["activity_id"], name: "index_activity_segments_on_activity_id"
+    t.index ["geom"], name: "idx_activity_segments_geom", using: :gist
     t.index ["geom"], name: "index_activity_segments_on_geom", using: :gist
+    t.index ["geom_3857"], name: "idx_activity_segments_geom_3857", using: :gist
     t.index ["start_time", "end_time"], name: "idx_activity_segments_time_range"
     t.check_constraint "st_npoints(geom) >= 2", name: "activity_segments_min_points"
+  end
+
+  create_table "sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.datetime "last_active_at"
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.uuid "user_id", null: false
+    t.index ["token"], name: "index_sessions_on_token", unique: true
+    t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.boolean "public_profile", default: false, null: false
     t.datetime "updated_at", null: false
     t.datetime "verified_at"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -98,26 +126,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_19_164046) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "activities", column: "tour_id"
   add_foreign_key "activities", "users"
+  add_foreign_key "activity_points", "activity_segments", name: "fk_activity_points_segments", on_delete: :cascade
   add_foreign_key "activity_segments", "activities"
-
-  create_view "activity_mvts", materialized: true, sql_definition: <<-SQL
-      WITH zoom_levels AS (
-           SELECT generate_series(0, 15) AS z
-          )
-   SELECT a.id,
-      z.z AS zoom_level,
-          CASE
-              WHEN (z.z < 10) THEN st_simplify(a.track_3857, (200)::double precision)
-              WHEN (z.z < 13) THEN st_simplify(a.track_3857, (50)::double precision)
-              ELSE a.track_3857
-          END AS geom
-     FROM (activities a
-       CROSS JOIN zoom_levels z)
-    WHERE ((a.track_3857 IS NOT NULL) AND (st_length(a.track_3857) > (0)::double precision));
-  SQL
-  add_index "activity_mvts", ["geom"], name: "index_activity_mvts_on_geom", using: :gist
-  add_index "activity_mvts", ["id", "zoom_level"], name: "idx_activities_mvt_unique", unique: true
-  add_index "activity_mvts", ["zoom_level"], name: "index_activity_mvts_on_zoom_level"
+  add_foreign_key "sessions", "users"
 
   create_view "activity_segments_mvts", materialized: true, sql_definition: <<-SQL
       WITH zoom_levels AS (
