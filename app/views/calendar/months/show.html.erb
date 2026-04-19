@@ -32,21 +32,50 @@
     </header>
 
     <% max_dist = max_day_distance(@activities) %>
+    <% activities_by_date = @activities.group_by { |a| a.start_time&.to_date } %>
+
     <div class="month-weeks">
+        <%# Single weekday header row %>
+        <% first_week_days = [] %>
+        <% @month.each_week { |w| first_week_days = w.each_day.to_a; break } %>
+        <div class="month-dayname-header">
+            <% first_week_days.each do |d| %>
+                <span class="calendar-dayname"><%= d.strftime('%a') %></span>
+            <% end %>
+        </div>
+
         <% @month.each_week do |week| %>
+            <% week_days = week.each_day.to_a %>
+            <% week_activities = week_days.flat_map { |d| activities_by_date[d] || [] } %>
+            <% week_dist_km = week_activities.sum(&:distance) / 1000.0 %>
             <div class="calendar-week">
+                <div class="week-label">
+                    <span class="week-number">W<%= week_days.first.cweek %></span>
+                    <span class="week-range"><%= week_range_label(week_days) %></span>
+                    <% if week_dist_km > 0 %>
+                        <span class="week-dist"><%= "%.1f" % week_dist_km %> km</span>
+                    <% end %>
+                </div>
                 <ul>
-                    <% week.each_day do |date| %>
+                    <% week_days.each do |date| %>
                         <li class="<%= 'other-month' if date.month != @month.number %>">
-                            <div class="calendar-dayname"><%= Date::ABBR_DAYNAMES[date.wday] %></div>
-                            <% day_activities = @activities.select { |a| a.start_time&.to_date == date } %>
+                            <% day_activities = activities_by_date[date] || [] %>
                             <% if day_activities.any? %>
-                                <div class="day-bubble" style="<%= day_bubble_style(day_activities, max_dist) %>"
-                                     title="<%= day_activities.map(&:activity_type).map(&:to_s).tally.map { |t, n| "#{n}× #{t.presence || 'activity'}" }.join(', ') %> · <%= format_distance(day_activities.sum(&:distance)) %>">
-                                    <%= format_distance day_activities.sum(&:distance) %>
+                                <div class="day-circles">
+                                    <% day_activities.group_by(&:activity_type).each do |type, acts| %>
+                                        <div class="day-circle-wrap"
+                                             title="<%= "#{acts.size}× #{type&.humanize || 'Activity'}: #{"%.1f" % (acts.sum(&:distance) / 1000.0)} km" %>">
+                                            <div class="day-bubble" style="<%= day_bubble_style(acts, max_dist) %>">
+                                                <%= "%.1f" % (acts.sum(&:distance) / 1000.0) %>
+                                            </div>
+                                            <% if acts.size > 1 %>
+                                                <span class="day-circle-badge"><%= acts.size %></span>
+                                            <% end %>
+                                        </div>
+                                    <% end %>
                                 </div>
                             <% else %>
-                                <div class="day-rest"></div>
+                                <div class="day-rest">Rest</div>
                             <% end %>
                         </li>
                     <% end %>
@@ -59,7 +88,7 @@
         <section class="month-activities">
             <table class="activity-table">
                 <tbody>
-                    <%= render partial: "activities/activity", collection: @activities.where(type: nil), as: :activity %>
+                    <%= render partial: "activities/activity", collection: @activities.where(type: nil, tour_id: nil), as: :activity %>
                 </tbody>
             </table>
         </section>

@@ -270,6 +270,40 @@ a:has(.month) {
   gap: 1rem;
 }
 
+.month-dayname-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  justify-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.week-label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.6rem;
+  color: #bbb;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #ebebeb;
+  margin-bottom: 0.25rem;
+}
+
+.week-number {
+  font-weight: 700;
+  color: #aaa;
+}
+
+.week-range {
+  color: #ccc;
+}
+
+.week-dist {
+  margin-left: auto;
+  color: #aaa;
+  font-weight: 700;
+}
+
 .calendar-week ul {
   list-style: none;
   margin: 0;
@@ -282,12 +316,43 @@ a:has(.month) {
 
 .calendar-week li {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.35rem;
   justify-items: center;
 
   &.other-month {
     opacity: 0.25;
   }
+}
+
+.day-circles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+}
+
+.day-circle-wrap {
+  position: relative;
+}
+
+.day-circle-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: white;
+  color: #444;
+  border-radius: 50%;
+  width: 13px;
+  height: 13px;
+  font-size: 0.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  pointer-events: none;
 }
 
 .calendar-dayname {
@@ -299,21 +364,24 @@ a:has(.month) {
 .day-bubble {
   border-radius: 50%;
   aspect-ratio: 1;
-  display: grid;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   color: white;
   overflow: hidden;
   transition: width 0.15s;
-  cursor: default;
 }
 
 .day-rest {
-  width: 60px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #f0f0f0;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #ddd;
 }
 
 .month-activities {
