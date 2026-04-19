@@ -23,6 +23,10 @@ module ApplicationHelper
               .max.to_f
   end
 
+  def activity_type_color(type)
+    ACTIVITY_TYPE_COLORS.fetch(type.to_s, ACTIVITY_TYPE_COLORS["cycling"])
+  end
+
   def week_range_label(days)
     first, last = days.first, days.last
     if first.month == last.month

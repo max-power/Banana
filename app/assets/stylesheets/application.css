@@ -318,9 +318,13 @@ a:has(.month) {
   display: grid;
   gap: 0.35rem;
   justify-items: center;
+  position: relative;
 
-  &.other-month {
-    opacity: 0.25;
+  &.other-month { opacity: 0.25; }
+  &:hover .day-popover {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
   }
 }
 
@@ -335,6 +339,90 @@ a:has(.month) {
 
 .day-circle-wrap {
   position: relative;
+}
+
+.activity-type-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.day-popover {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s, visibility 0.1s;
+  transition-delay: 200ms;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  padding: 0.5rem;
+  width: 200px;
+
+  &:hover {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+  }
+}
+
+.day-popover-date {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+
+.day-popover-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.2rem 0;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .day-popover-name { text-decoration: underline; }
+}
+
+.day-popover-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.day-popover-name {
+  flex: 1;
+  font-size: 0.75rem;
+}
+
+.day-popover-dist {
+  font-size: 0.7rem;
+  color: #888;
+  font-variant-numeric: tabular-nums;
 }
 
 .day-circle-badge {

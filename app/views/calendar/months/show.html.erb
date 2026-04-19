@@ -34,6 +34,19 @@
     <% max_dist = max_day_distance(@activities) %>
     <% activities_by_date = @activities.group_by { |a| a.start_time&.to_date } %>
 
+    <%# Color legend for types present this month %>
+    <% present_types = @activities.map(&:activity_type).compact.uniq %>
+    <% if present_types.any? %>
+        <div class="activity-type-legend">
+            <% present_types.each do |type| %>
+                <span class="legend-item">
+                    <span class="legend-dot" style="background: <%= activity_type_color(type) %>"></span>
+                    <%= type.humanize %>
+                </span>
+            <% end %>
+        </div>
+    <% end %>
+
     <div class="month-weeks">
         <%# Single weekday header row %>
         <% first_week_days = [] %>
@@ -63,8 +76,7 @@
                             <% if day_activities.any? %>
                                 <div class="day-circles">
                                     <% day_activities.group_by(&:activity_type).each do |type, acts| %>
-                                        <div class="day-circle-wrap"
-                                             title="<%= "#{acts.size}× #{type&.humanize || 'Activity'}: #{"%.1f" % (acts.sum(&:distance) / 1000.0)} km" %>">
+                                        <div class="day-circle-wrap">
                                             <div class="day-bubble" style="<%= day_bubble_style(acts, max_dist) %>">
                                                 <%= "%.1f" % (acts.sum(&:distance) / 1000.0) %>
                                             </div>
@@ -72,6 +84,16 @@
                                                 <span class="day-circle-badge"><%= acts.size %></span>
                                             <% end %>
                                         </div>
+                                    <% end %>
+                                </div>
+                                <div class="day-popover">
+                                    <div class="day-popover-date"><%= date.strftime('%a, %b %-d') %></div>
+                                    <% day_activities.each do |activity| %>
+                                        <%= link_to activity_path(activity), class: "day-popover-item" do %>
+                                            <span class="day-popover-dot" style="background: <%= activity_type_color(activity.activity_type) %>"></span>
+                                            <span class="day-popover-name"><%= activity.name.presence || activity.activity_type&.humanize || "Activity" %></span>
+                                            <span class="day-popover-dist"><%= "%.1f km" % (activity.distance.to_f / 1000.0) %></span>
+                                        <% end %>
                                     <% end %>
                                 </div>
                             <% else %>
@@ -83,14 +105,4 @@
             </div>
         <% end %>
     </div>
-
-    <% if @activities.any? %>
-        <section class="month-activities">
-            <table class="activity-table">
-                <tbody>
-                    <%= render partial: "activities/activity", collection: @activities.where(type: nil, tour_id: nil), as: :activity %>
-                </tbody>
-            </table>
-        </section>
-    <% end %>
 </article>
