@@ -97,7 +97,7 @@
   <div class="share-embed">
     <p class="share-embed-label">Embed</p>
     <input class="share-embed-code" readonly
-           value='<iframe src="<%= shared_activity_url(@record.share_token) %>" width="800" height="500" frameborder="0"></iframe>'
+           value='<iframe src="<%= embed_activity_url(@record.share_token) %>" width="600" height="400" frameborder="0" style="border-radius:8px"></iframe>'
            onclick="this.select()">
   </div>
 </div>

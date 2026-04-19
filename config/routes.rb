@@ -29,7 +29,8 @@ Rails.application.routes.draw do
   resource :upload, only: [ :show, :create ]
 
   get "/athlete/:id", to: "public_profiles#show", as: :public_profile
-  get "/s/:token", to: "shares#show", as: :shared_activity
+  get "/s/:token",       to: "shares#show",  as: :shared_activity
+  get "/s/:token/embed", to: "shares#embed", as: :embed_activity
 
   get "up" => "rails/health#show", as: :rails_health_check
 
