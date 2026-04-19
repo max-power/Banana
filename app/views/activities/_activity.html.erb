@@ -8,7 +8,7 @@
   </div>
   <div class="activity-card-body">
     <p class="activity-card-meta">
-      <span class="activity-card-type"><%= activity.activity_type&.humanize || "Activity" %></span>
+      <span class="activity-card-type"><%= local_assigns[:day_label] || activity.activity_type&.humanize || "Activity" %></span>
       <% if activity.start_time %>
         &middot; <span class="activity-card-date"><%= l(activity.start_time, format: :short) %></span>
       <% end %>
