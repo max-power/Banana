@@ -4,6 +4,6 @@ class Session < ApplicationRecord
   has_secure_token
 
   def touch_last_active!
-    update_column(:last_active_at, Time.current)
+    touch(:last_active_at)
   end
 end
