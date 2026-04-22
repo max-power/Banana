@@ -14,6 +14,10 @@
                 <dd class="number"><%= number_with_delimiter((@statistics.sum(&:distance) / 1000).round) %></dd>
             </div>
             <div class="stat">
+                <dt>elevation</dt>
+                <dd class="number"><%= number_with_delimiter(@statistics.sum(&:elevation_gain).round) %> m</dd>
+            </div>
+            <div class="stat">
                 <dt>hours</dt>
                 <dd class="number"><%= (@statistics.sum(&:moving_time) / 3600.0).round %></dd>
             </div>

@@ -61,12 +61,14 @@
             <% week_days = week.each_day.to_a %>
             <% week_activities = week_days.flat_map { |d| activities_by_date[d] || [] } %>
             <% week_dist_km = week_activities.sum(&:distance) / 1000.0 %>
+            <% week_elev_m  = week_activities.sum { |a| a.elevation_gain.to_i } %>
             <div class="calendar-week">
                 <div class="week-label">
                     <span class="week-number">W<%= week_days.first.cweek %></span>
                     <span class="week-range"><%= week_range_label(week_days) %></span>
                     <% if week_dist_km > 0 %>
                         <span class="week-dist"><%= "%.1f" % week_dist_km %> km</span>
+                        <span class="week-elev">↑ <%= number_with_delimiter(week_elev_m) %> m</span>
                     <% end %>
                 </div>
                 <ul>
