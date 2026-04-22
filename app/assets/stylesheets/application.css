@@ -1587,6 +1587,118 @@ details[open] > .tour-card-summary::after {
   overflow: hidden;
 }
 
+/* Personal records */
+
+.records-page {
+  max-width: 900px;
+
+  h1 {
+    font-size: 1.5rem;
+    margin-block-end: 2rem;
+  }
+}
+
+.records-section {
+  margin-block-end: 2.5rem;
+
+  h2 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    margin-block-end: 0.75rem;
+  }
+}
+
+.records-subheading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #bbb;
+  margin-block: 1.25rem 0.75rem;
+  font-weight: normal;
+}
+
+.records-subheading-note {
+  font-weight: normal;
+  color: #ccc;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.records-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.record-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid #e8e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+
+.record-card-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.record-card-body {
+  min-width: 0;
+}
+
+.record-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
+  margin-block-end: 0.2rem;
+}
+
+.record-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: #1a1a2e;
+  margin-block-end: 0.3rem;
+}
+
+.record-meta {
+  font-size: 0.78rem;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  a {
+    color: var(--brand);
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.record-card--period {
+  background: #fafafa;
+}
+
+.record-card--streak {
+  background: #fafafa;
+}
+
+.record-card--streak-active {
+  background: #fff8f0;
+  border-color: #f0c080;
+
+  .record-value { color: #c06000; }
+}
+
 /* Auth form */
 .auth-form {
   max-width: 360px;

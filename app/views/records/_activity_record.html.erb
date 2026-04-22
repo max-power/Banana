@@ -1,0 +1,16 @@
+<div class="record-card">
+  <div class="record-card-icon"><%= icon %></div>
+  <div class="record-card-body">
+    <p class="record-label"><%= label %></p>
+    <p class="record-value"><%= record.formatted_value %></p>
+    <p class="record-meta">
+      <%= link_to record.activity.name.presence || "Untitled", activity_path(record.activity) %>
+      <% if record.activity.start_time %>
+        &middot; <%= l(record.activity.start_time, format: :short) %>
+      <% end %>
+      <% if record.activity.activity_type %>
+        &middot; <%= record.activity.activity_type.humanize %>
+      <% end %>
+    </p>
+  </div>
+</div>
