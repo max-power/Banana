@@ -1,11 +1,9 @@
 class UploadsController < ApplicationController
-    def show
+  before_action :authenticate!
 
-    end
+  def show
+  end
 
-    def create
-
-    end
-
-    private
+  def create
+  end
 end

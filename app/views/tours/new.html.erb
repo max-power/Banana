@@ -1,0 +1,41 @@
+<% content_for :title, "New Tour" %>
+
+<div class="tour-form"
+     data-controller="tour-form"
+     data-tour-form-preview-url-value="<%= preview_activities_tours_path %>">
+  <h1>New Tour</h1>
+
+  <%= form_with model: @tour do |f| %>
+    <div class="field">
+      <%= f.label :name, "Tour name" %>
+      <%= f.text_field :name, required: true, autofocus: true, placeholder: "e.g. Alps 2024" %>
+    </div>
+
+    <div class="field">
+      <%= f.label :description, "Notes (optional)" %>
+      <%= f.text_area :description, rows: 3 %>
+    </div>
+
+    <div class="field-group field-group--inline">
+      <div class="field">
+        <%= label_tag :start_date, "Start date" %>
+        <%= date_field_tag :start_date, nil,
+            data: { "tour-form-target": "startDate", action: "change->tour-form#refresh" } %>
+      </div>
+      <div class="field">
+        <%= label_tag :end_date, "End date" %>
+        <%= date_field_tag :end_date, nil,
+            data: { "tour-form-target": "endDate", action: "change->tour-form#refresh" } %>
+      </div>
+    </div>
+
+    <div class="tour-preview" data-tour-form-target="preview">
+      <p class="tour-preview-hint">Select a date range to preview matching activities</p>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "Create tour" %>
+      <%= link_to "Cancel", activities_path %>
+    </div>
+  <% end %>
+</div>

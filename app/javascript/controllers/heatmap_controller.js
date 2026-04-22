@@ -1,138 +1,211 @@
 import { Controller } from "@hotwired/stimulus";
 import maplibregl from "maplibre-gl";
-import StyleFlipperControl from "maplibre-gl-style-flipper";
 
-// Connects to data-controller="heatmap"
+const STYLES = ["bright", "liberty", "positron", "dark", "fiord", "black", "white"];
+
+const FLAT_STYLE = (color) => ({
+  version: 8,
+  sources: {},
+  layers: [{ id: "background", type: "background", paint: { "background-color": color } }],
+});
+
+const STYLE_URL = (s) => {
+  if (s === "black") return FLAT_STYLE("#000000");
+  if (s === "white") return FLAT_STYLE("#ffffff");
+  return `https://tiles.openfreemap.org/styles/${s}`;
+};
+
 export default class extends Controller {
-  static targets = ["map"];
+  static targets = ["map", "filterBar"];
   static values = {
-    trackUrl: String,
+    bounds: Array,
     center: Array,
     zoom: Number,
     style: String,
-    lineColor: String,
-    lineWidth: Number,
+    years: Array,
+    types: Array,
   };
 
   defaults = {
     center: [13.41, 52.52],
     zoom: 10,
-    style: "carto-voyager",
-    lineColor: "#FF3333",
-    lineWidth: 3,
-    lineOpacity: 0.2,
+    style: "dark",
   };
 
-  mapStyles = {
-    "openfreemap-liberty": {
-      code: "liberty",
-      url: "https://tiles.openfreemap.org/styles/liberty",
-      image: "",
-    },
-    "carto-voyager": {
-      code: "carto-voyager",
-      url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/voyager_labels.png",
-    },
-    "carto-voyager-nolabels": {
-      code: "carto-voyager-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/voyager_no_labels.png",
-    },
-    "carto-positron": {
-      code: "carto-positron",
-      url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/positron_labels.png",
-    },
-    "carto-positron-nolabels": {
-      code: "carto-positron-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/positron_no_labels.png",
-    },
-    "carto-dark": {
-      code: "carto-dark",
-      url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/dark_labels.png",
-    },
-    "carto-dark-nolabels": {
-      code: "carto-dark-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
-      image:
-        "https://carto.com/help/images/building-maps/basemaps/dark_no_labels.png",
-    },
-  };
+  palettes = [
+    { id: "purple", label: "Purple", stops: ["#5500f5", "#5500f5", "#ffffff"] },
+    { id: "hot",    label: "Hot",    stops: ["#3f5efb", "#fc466b", "#ffffff"] },
+    { id: "orange", label: "Orange", stops: ["#fc4a1a", "#f7b733", "#ffffff"] },
+    { id: "red",    label: "Red",    stops: ["#b20a2c", "#fffbd5", "#ffffff"] },
+    { id: "pink",   label: "Pink",   stops: ["#ffb1ff", "#ffb1ff", "#ffffff"] },
+    { id: "cyber",  label: "Cyber",  stops: ["#00ff41", "#b4ff00", "#ffffff"] },
+  ]
 
   connect() {
-    if (!this.map) this.setupMap();
-    this.map.once("load", () => {
-      this.addVectorTiles();
-      //this.addRasterTiles();
-    });
+    this.selectedYear    = null;
+    this.selectedType    = null;
+    this.selectedPalette = localStorage.getItem("heatmap_palette") || "purple";
+    this.selectedStyle   = localStorage.getItem("heatmap_style") || this.defaults.style;
+    this.buildFilterBar();
+    this.setupMap();
+    this.map.once("load", () => this.addHeatmapTiles());
   }
 
+  // ── Filter UI ─────────────────────────────────────────────────────────────
+
+  buildFilterBar() {
+    const bar = this.filterBarTarget;
+    bar.innerHTML = "";
+
+    const yearRow = document.createElement("div");
+    yearRow.className = "heatmap-filter-row";
+
+    const allBtn = this.makeBtn("All", !this.selectedYear, () => {
+      this.selectedYear = null;
+      this.buildFilterBar();
+      this.refreshTiles();
+    });
+    yearRow.appendChild(allBtn);
+
+    if (this.yearsValue.length > 0) {
+      yearRow.appendChild(this.makeDivider());
+      this.yearsValue.forEach((year) => {
+        const btn = this.makeBtn(year, this.selectedYear === year, () => {
+          this.selectedYear = this.selectedYear === year ? null : year;
+          this.buildFilterBar();
+          this.refreshTiles();
+        });
+        yearRow.appendChild(btn);
+      });
+    }
+
+    bar.appendChild(yearRow);
+
+    if (this.typesValue.length > 1) {
+      const typeRow = document.createElement("div");
+      typeRow.className = "heatmap-filter-row";
+
+      const allBtn = this.makeBtn("All", !this.selectedType, () => {
+        this.selectedType = null;
+        this.buildFilterBar();
+        this.refreshTiles();
+      });
+      typeRow.appendChild(allBtn);
+      typeRow.appendChild(this.makeDivider());
+
+      this.typesValue.forEach((type) => {
+        const btn = this.makeBtn(type.replace(/_/g, " "), this.selectedType === type, () => {
+          this.selectedType = this.selectedType === type ? null : type;
+          this.buildFilterBar();
+          this.refreshTiles();
+        });
+        typeRow.appendChild(btn);
+      });
+      bar.appendChild(typeRow);
+    }
+
+    const paletteRow = document.createElement("div");
+    paletteRow.className = "heatmap-filter-row";
+    this.palettes.forEach(({ id, label, stops }) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = label;
+      btn.className = "heatmap-palette-btn" + (this.selectedPalette === id ? " active" : "");
+      btn.style.background = `linear-gradient(to right, ${stops.join(", ")})`;
+      btn.addEventListener("click", () => {
+        this.selectedPalette = id;
+        localStorage.setItem("heatmap_palette", id);
+        this.buildFilterBar();
+        this.refreshTiles();
+      });
+      paletteRow.appendChild(btn);
+    });
+    bar.appendChild(paletteRow);
+
+    const styleRow = document.createElement("div");
+    styleRow.className = "heatmap-filter-row";
+    STYLES.forEach((style) => {
+      const btn = this.makeBtn(style.charAt(0).toUpperCase() + style.slice(1), this.selectedStyle === style, () => {
+        this.selectedStyle = style;
+        localStorage.setItem("heatmap_style", style);
+        this.buildFilterBar();
+        this.map.setStyle(STYLE_URL(style));
+        this.map.once("style.load", () => this.addHeatmapTiles());
+      });
+      styleRow.appendChild(btn);
+    });
+    bar.appendChild(styleRow);
+  }
+
+  makeBtn(label, active, onClick) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = label;
+    btn.className = "heatmap-filter-btn" + (active ? " active" : "");
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  makeDivider() {
+    const span = document.createElement("span");
+    span.className = "heatmap-filter-divider";
+    return span;
+  }
+
+  // ── Tile URL ──────────────────────────────────────────────────────────────
+
+  get tileUrl() {
+    const qs = new URLSearchParams();
+    if (this.selectedYear)    qs.set("year",    this.selectedYear);
+    if (this.selectedType)    qs.set("type",    this.selectedType);
+    if (this.selectedPalette) qs.set("palette", this.selectedPalette);
+    const q = qs.toString();
+    return `/heatmap/{z}/{x}/{y}.png${q ? "?" + q : ""}`;
+  }
+
+  refreshTiles() {
+    if (!this.map.isStyleLoaded()) return;
+    if (this.map.getLayer("heatmap-layer")) this.map.removeLayer("heatmap-layer");
+    if (this.map.getSource("heatmap"))      this.map.removeSource("heatmap");
+    this.addHeatmapTiles();
+  }
+
+  // ── Map setup ─────────────────────────────────────────────────────────────
+
   setupMap() {
+    const bounds = this.hasBoundsValue && this.boundsValue.length === 4
+      ? [[this.boundsValue[0], this.boundsValue[1]], [this.boundsValue[2], this.boundsValue[3]]]
+      : null;
+
     this.map = new maplibregl.Map({
       container: this.mapTarget,
-      style: this.getMapStyle().url,
-      center: this.getMapCenter(),
-      zoom: this.getMapZoom(),
-      maxZoom: 15,
+      style: STYLE_URL(this.selectedStyle),
+      center: bounds ? undefined : this.getMapCenter(),
+      zoom:   bounds ? undefined : this.getMapZoom(),
+      bounds: bounds || undefined,
+      fitBoundsOptions: { padding: 40 },
+      maxZoom: 16,
     });
     this.map.addControl(new maplibregl.FullscreenControl());
     this.map.addControl(new maplibregl.NavigationControl());
-    this.map.addControl(new maplibregl.GlobeControl());
-    //this.map.addControl(new maplibregl.TerrainControl({ source: "terrain" }));
-    // this.map.addControl(new maplibregl.ScaleControl({ maxWidth: 80, unit: "metric" }));
-
-    const styleFlipperControl = new StyleFlipperControl(this.mapStyles);
-    // Set the initial style code
-    styleFlipperControl.setCurrentStyleCode(this.getMapStyle().code);
-    this.map.addControl(styleFlipperControl, "bottom-left");
   }
 
-  addRasterTiles() {
-    const source_options = {
+  addHeatmapTiles() {
+    this.map.addSource("heatmap", {
       type: "raster",
-      tiles: ["http://localhost:8000/tiles/{z}/{x}/{y}.png"],
+      tiles: [this.tileUrl],
       tileSize: 256,
       minzoom: 0,
       maxzoom: 16,
-    };
-    this.map.on("load", () => {
-      this.map.addSource("heatmap-raster-tiles", source_options);
-      this.map.addLayer({
-        id: "hotpot",
-        type: "raster",
-        source: "heatmap-raster-tiles",
-      });
-    });
-  }
-
-  addVectorTiles() {
-    this.map.addSource("postgis-vector-tiles", {
-      type: "vector",
-      tiles: ["http://localhost:3003/heatmap/{z}/{x}/{y}.mvt"],
-      tileSize: 512,
     });
 
     this.map.addLayer({
-      id: "heatmap-vector-tiles",
-      type: "line",
-      source: "postgis-vector-tiles",
-      "source-layer": "activities",
-      layout: {
-        "line-join": "round",
-        "line-cap": "round",
-      },
+      id: "heatmap-layer",
+      type: "raster",
+      source: "heatmap",
       paint: {
-        "line-opacity": this.getLineOpacity(),
-        "line-color": this.getLineColor(),
-        "line-width": this.getLineWidth(),
+        "raster-opacity": 0.9,
+        "raster-fade-duration": 150,
       },
     });
   }
@@ -147,21 +220,4 @@ export default class extends Controller {
     return this.zoomValue || this.defaults.zoom;
   }
 
-  getMapStyle() {
-    return (
-      this.mapStyles[this.styleValue] || this.mapStyles[this.defaults.style]
-    );
-  }
-
-  getLineColor() {
-    return this.lineColorValue || this.defaults.lineColor;
-  }
-
-  getLineWidth() {
-    return this.lineWidthValue || this.defaults.lineWidth;
-  }
-
-  getLineOpacity() {
-    return this.lineOpacityValue || this.defaults.lineOpacity;
-  }
 }
