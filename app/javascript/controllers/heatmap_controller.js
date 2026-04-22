@@ -1,8 +1,19 @@
 import { Controller } from "@hotwired/stimulus";
 import maplibregl from "maplibre-gl";
-import StyleFlipperControl from "maplibre-gl-style-flipper";
 
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const STYLES = ["bright", "liberty", "positron", "dark", "fiord", "black", "white"];
+
+const FLAT_STYLE = (color) => ({
+  version: 8,
+  sources: {},
+  layers: [{ id: "background", type: "background", paint: { "background-color": color } }],
+});
+
+const STYLE_URL = (s) => {
+  if (s === "black") return FLAT_STYLE("#000000");
+  if (s === "white") return FLAT_STYLE("#ffffff");
+  return `https://tiles.openfreemap.org/styles/${s}`;
+};
 
 export default class extends Controller {
   static targets = ["map", "filterBar"];
@@ -12,48 +23,29 @@ export default class extends Controller {
     zoom: Number,
     style: String,
     years: Array,
+    types: Array,
   };
 
   defaults = {
     center: [13.41, 52.52],
     zoom: 10,
-    style: "carto-dark-nolabels",
+    style: "dark",
   };
 
-  mapStyles = {
-    "openfreemap-liberty": {
-      code: "liberty",
-      url: "https://tiles.openfreemap.org/styles/liberty",
-    },
-    "carto-voyager": {
-      code: "carto-voyager",
-      url: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
-    },
-    "carto-voyager-nolabels": {
-      code: "carto-voyager-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/voyager-nolabels-gl-style/style.json",
-    },
-    "carto-positron": {
-      code: "carto-positron",
-      url: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-    },
-    "carto-positron-nolabels": {
-      code: "carto-positron-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json",
-    },
-    "carto-dark": {
-      code: "carto-dark",
-      url: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
-    },
-    "carto-dark-nolabels": {
-      code: "carto-dark-nolabels",
-      url: "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json",
-    },
-  };
+  palettes = [
+    { id: "purple", label: "Purple", stops: ["#5500f5", "#5500f5", "#ffffff"] },
+    { id: "hot",    label: "Hot",    stops: ["#3f5efb", "#fc466b", "#ffffff"] },
+    { id: "orange", label: "Orange", stops: ["#fc4a1a", "#f7b733", "#ffffff"] },
+    { id: "red",    label: "Red",    stops: ["#b20a2c", "#fffbd5", "#ffffff"] },
+    { id: "pink",   label: "Pink",   stops: ["#ffb1ff", "#ffb1ff", "#ffffff"] },
+    { id: "cyber",  label: "Cyber",  stops: ["#00ff41", "#b4ff00", "#ffffff"] },
+  ]
 
   connect() {
-    this.selectedYear  = null;
-    this.selectedMonth = null;
+    this.selectedYear    = null;
+    this.selectedType    = null;
+    this.selectedPalette = localStorage.getItem("heatmap_palette") || "purple";
+    this.selectedStyle   = localStorage.getItem("heatmap_style") || this.defaults.style;
     this.buildFilterBar();
     this.setupMap();
     this.map.once("load", () => this.addHeatmapTiles());
@@ -69,8 +61,7 @@ export default class extends Controller {
     yearRow.className = "heatmap-filter-row";
 
     const allBtn = this.makeBtn("All", !this.selectedYear, () => {
-      this.selectedYear  = null;
-      this.selectedMonth = null;
+      this.selectedYear = null;
       this.buildFilterBar();
       this.refreshTiles();
     });
@@ -80,13 +71,7 @@ export default class extends Controller {
       yearRow.appendChild(this.makeDivider());
       this.yearsValue.forEach((year) => {
         const btn = this.makeBtn(year, this.selectedYear === year, () => {
-          if (this.selectedYear === year) {
-            this.selectedYear  = null;
-            this.selectedMonth = null;
-          } else {
-            this.selectedYear  = year;
-            this.selectedMonth = null;
-          }
+          this.selectedYear = this.selectedYear === year ? null : year;
           this.buildFilterBar();
           this.refreshTiles();
         });
@@ -96,20 +81,60 @@ export default class extends Controller {
 
     bar.appendChild(yearRow);
 
-    if (this.selectedYear) {
-      const monthRow = document.createElement("div");
-      monthRow.className = "heatmap-filter-row";
-      MONTHS.forEach((label, i) => {
-        const monthNum = i + 1;
-        const btn = this.makeBtn(label, this.selectedMonth === monthNum, () => {
-          this.selectedMonth = this.selectedMonth === monthNum ? null : monthNum;
+    if (this.typesValue.length > 1) {
+      const typeRow = document.createElement("div");
+      typeRow.className = "heatmap-filter-row";
+
+      const allBtn = this.makeBtn("All", !this.selectedType, () => {
+        this.selectedType = null;
+        this.buildFilterBar();
+        this.refreshTiles();
+      });
+      typeRow.appendChild(allBtn);
+      typeRow.appendChild(this.makeDivider());
+
+      this.typesValue.forEach((type) => {
+        const btn = this.makeBtn(type.replace(/_/g, " "), this.selectedType === type, () => {
+          this.selectedType = this.selectedType === type ? null : type;
           this.buildFilterBar();
           this.refreshTiles();
         });
-        monthRow.appendChild(btn);
+        typeRow.appendChild(btn);
       });
-      bar.appendChild(monthRow);
+      bar.appendChild(typeRow);
     }
+
+    const paletteRow = document.createElement("div");
+    paletteRow.className = "heatmap-filter-row";
+    this.palettes.forEach(({ id, label, stops }) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = label;
+      btn.className = "heatmap-palette-btn" + (this.selectedPalette === id ? " active" : "");
+      btn.style.background = `linear-gradient(to right, ${stops.join(", ")})`;
+      btn.addEventListener("click", () => {
+        this.selectedPalette = id;
+        localStorage.setItem("heatmap_palette", id);
+        this.buildFilterBar();
+        this.refreshTiles();
+      });
+      paletteRow.appendChild(btn);
+    });
+    bar.appendChild(paletteRow);
+
+    const styleRow = document.createElement("div");
+    styleRow.className = "heatmap-filter-row";
+    STYLES.forEach((style) => {
+      const btn = this.makeBtn(style.charAt(0).toUpperCase() + style.slice(1), this.selectedStyle === style, () => {
+        this.selectedStyle = style;
+        localStorage.setItem("heatmap_style", style);
+        this.buildFilterBar();
+        this.map.setStyle(STYLE_URL(style));
+        this.map.once("style.load", () => this.addHeatmapTiles());
+      });
+      styleRow.appendChild(btn);
+    });
+    bar.appendChild(styleRow);
   }
 
   makeBtn(label, active, onClick) {
@@ -130,10 +155,12 @@ export default class extends Controller {
   // ── Tile URL ──────────────────────────────────────────────────────────────
 
   get tileUrl() {
-    const qs = [];
-    if (this.selectedYear)  qs.push(`year=${this.selectedYear}`);
-    if (this.selectedMonth) qs.push(`month=${this.selectedMonth}`);
-    return `/heatmap/{z}/{x}/{y}.png${qs.length ? "?" + qs.join("&") : ""}`;
+    const qs = new URLSearchParams();
+    if (this.selectedYear)    qs.set("year",    this.selectedYear);
+    if (this.selectedType)    qs.set("type",    this.selectedType);
+    if (this.selectedPalette) qs.set("palette", this.selectedPalette);
+    const q = qs.toString();
+    return `/heatmap/{z}/{x}/{y}.png${q ? "?" + q : ""}`;
   }
 
   refreshTiles() {
@@ -152,7 +179,7 @@ export default class extends Controller {
 
     this.map = new maplibregl.Map({
       container: this.mapTarget,
-      style: this.getMapStyle().url,
+      style: STYLE_URL(this.selectedStyle),
       center: bounds ? undefined : this.getMapCenter(),
       zoom:   bounds ? undefined : this.getMapZoom(),
       bounds: bounds || undefined,
@@ -161,10 +188,6 @@ export default class extends Controller {
     });
     this.map.addControl(new maplibregl.FullscreenControl());
     this.map.addControl(new maplibregl.NavigationControl());
-
-    const styleFlipperControl = new StyleFlipperControl(this.mapStyles);
-    styleFlipperControl.setCurrentStyleCode(this.getMapStyle().code);
-    this.map.addControl(styleFlipperControl, "bottom-left");
   }
 
   addHeatmapTiles() {
@@ -197,7 +220,4 @@ export default class extends Controller {
     return this.zoomValue || this.defaults.zoom;
   }
 
-  getMapStyle() {
-    return this.mapStyles[this.styleValue] || this.mapStyles[this.defaults.style];
-  }
 }

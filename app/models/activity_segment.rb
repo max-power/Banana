@@ -10,12 +10,4 @@ class ActivitySegment < ApplicationRecord
     select("ST_AsEncodedPolyline(ST_LineMerge(ST_Collect(geom))) as polyline")
   }
 
-  # move to import job
-  # after_commit :refresh_map_tiles, on: [:create, :update]
-
-  # private
-
-  # def refresh_map_tiles
-  #     RefreshMvtViewJob.perform_later
-  # end
 end

@@ -1278,30 +1278,50 @@ details[open] > .tour-card-summary::after {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-block-end: 1.5rem;
+  margin-block-end: 1rem;
 
   h1 {
     margin: 0;
+    flex: 1;
   }
 }
 
-.activity-search {
-  flex: 1;
+.activity-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block-end: 1.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #f7f7f7;
+  border-radius: 6px;
 }
 
-.activity-search-input {
-  width: 100%;
-  max-width: 280px;
-  padding: 0.35rem 0.65rem;
+.activity-search-input,
+.activity-toolbar-select {
+  height: 2rem;
+  padding-block: 0;
+  padding-inline: 0.65rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.875rem;
   font-family: inherit;
+  background: white;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
     border-color: var(--brand);
   }
+}
+
+.activity-search-input {
+  flex: 1;
+  min-width: 0;
+  max-width: 260px;
+}
+
+.activity-toolbar-select {
+  cursor: pointer;
 }
 
 .btn-secondary {
@@ -1356,6 +1376,20 @@ details[open] > .tour-card-summary::after {
     }
   }
 
+  .field-group--inline {
+    display: flex;
+    gap: 1rem;
+
+    .field {
+      flex: 1;
+    }
+  }
+
+  h2 {
+    font-size: 1rem;
+    margin-block: 2rem 0.75rem;
+  }
+
   .danger-zone {
     margin-block-start: 3rem;
     padding-block-start: 1rem;
@@ -1374,50 +1408,125 @@ details[open] > .tour-card-summary::after {
   }
 }
 
-.activity-picker {
-  border: 1px solid #e0e0e0;
-  border-radius: 2px;
-  padding: 0.75rem;
-  margin-block-end: 1rem;
+.tour-preview {
+  margin-block: 0.75rem 1rem;
+  min-height: 2rem;
+}
 
-  legend {
-    font-size: 0.8em;
-    text-transform: uppercase;
-    color: #808080;
-    padding-inline: 0.25rem;
+.tour-preview-hint {
+  font-size: 0.8rem;
+  color: #909090;
+  margin: 0;
+}
+
+.tour-preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tour-preview-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+
+  & + & {
+    border-top: 1px solid #f0f0f0;
   }
 }
 
-.picker-month {
-  margin-block-end: 0.75rem;
+.tour-preview-name {
+  flex: 1;
 }
 
-.picker-month-label {
-  font-size: 0.7em;
-  text-transform: uppercase;
-  color: #808080;
-  margin: 0 0 0.25rem;
+.tour-preview-meta {
+  color: #909090;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
-.picker-row {
+.tour-preview-count {
+  font-size: 0.8rem;
+  color: #606060;
+  margin: 0.4rem 0 0;
+}
+
+.tour-activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tour-activity-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.2rem 0;
-  font-size: 0.8rem;
-  cursor: pointer;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
 
-  .picker-name {
-    flex: 1;
-  }
-  .picker-meta {
-    color: #808080;
-  }
-
-  &:hover .picker-name {
-    color: var(--brand);
+  & + & {
+    border-top: 1px solid #f0f0f0;
   }
 }
+
+.tour-activity-info {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.tour-activity-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tour-activity-meta {
+  color: #909090;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: #b00;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
+  font-family: inherit;
+  flex-shrink: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.tour-edit-add {
+  input[type="submit"] {
+    padding: 0.4rem 1rem;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-block-start: 0.5rem;
+  }
+}
+
 
 .tour-days h2 {
   font-size: 0.85em;
@@ -1549,6 +1658,8 @@ details[open] > .tour-card-summary::after {
   gap: 2px;
   overflow-x: auto;
   scrollbar-width: none;
+  padding: 2px;
+  margin: -2px;
 }
 
 .heatmap-filter-btn {
@@ -1565,6 +1676,20 @@ details[open] > .tour-card-summary::after {
 
   &:hover { background: rgba(255,255,255,0.12); color: white; }
   &.active { background: var(--brand); color: white; }
+}
+
+.heatmap-palette-btn {
+  width: 2rem;
+  height: 0.85rem;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: box-shadow 0.1s;
+
+  &:hover { box-shadow: 0 0 0 2px rgba(255,255,255,0.5); }
+  &.active { box-shadow: 0 0 0 2px white; }
 }
 
 .heatmap-filter-divider {
