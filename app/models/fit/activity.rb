@@ -5,17 +5,23 @@ module FIT
     end
 
     def to_h
+      metadata
+    end
+
+    def metadata
       points  = @parser.records
       session = @parser.session
       return {} if points.empty?
 
-      segments   = Track::Cleaner.new.segments(points)
-      all_points = segments.flat_map(&:points)
-      elevation  = Track::ElevationMetric.new(all_points)
+      activity_type = SPORT_TYPES[session[:sport]] || "workout"
+      profile       = ActivityProfile.for(activity_type)
+      segments      = Track::Cleaner.new(profile).segments(points)
+      all_points    = segments.flat_map(&:points)
+      elevation     = Track::ElevationMetric.new(all_points)
 
       {
         activity_name:     nil,  # FIT files rarely carry a human-readable name
-        activity_type:     SPORT_TYPES[session[:sport]] || "workout",
+        activity_type:     activity_type,
         distance_m:        session[:distance_m] || total_distance(all_points),
         elevation_gain_m:  elevation.gain,
         elevation_loss_m:  elevation.loss,
@@ -39,7 +45,7 @@ module FIT
           coordinates:   seg.coordinates,
           start_time:    seg.start_time,
           end_time:      seg.end_time,
-          distance_m:    seg.distance_m.round(2),
+          distance_m:    seg.distance_m&.round(2),
           moving_time_s: seg.moving_time_s,
         }
       end

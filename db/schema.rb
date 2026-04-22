@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_22_083821) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
@@ -62,7 +62,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_083821) do
     t.string "share_token", null: false
     t.datetime "start_time"
     t.uuid "tour_id"
-    t.geography "track", limit: {srid: 4326, type: "line_string", has_z: true, geographic: true}
     t.geometry "track_3857", limit: {srid: 3857, type: "geometry", has_z: true}
     t.string "type"
     t.datetime "updated_at", null: false
@@ -70,16 +69,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_083821) do
     t.index ["duplicate_of_id"], name: "index_activities_on_duplicate_of_id"
     t.index ["share_token"], name: "index_activities_on_share_token", unique: true
     t.index ["tour_id"], name: "index_activities_on_tour_id"
-    t.index ["track"], name: "activities_geom_idx", using: :gist
     t.index ["track_3857"], name: "idx_activities_track_3857", using: :gist
     t.index ["user_id"], name: "index_activities_on_user_id"
-  end
-
-  create_table "activity_points", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "activity_segment_id", null: false
-    t.geometry "geom", limit: {srid: 3857, type: "st_point"}, null: false
-    t.index ["activity_segment_id"], name: "idx_activity_points_activity_segment_id"
-    t.index ["geom"], name: "idx_activity_points_geom", using: :gist
   end
 
   create_table "activity_segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -141,37 +132,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_083821) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activities", "activities", column: "tour_id"
   add_foreign_key "activities", "users"
-  add_foreign_key "activity_points", "activity_segments", name: "fk_activity_points_segments", on_delete: :cascade
   add_foreign_key "activity_segments", "activities"
   add_foreign_key "activity_tiles", "activities", on_delete: :cascade
   add_foreign_key "sessions", "users"
-
-  create_view "activity_segments_mvts", materialized: true, sql_definition: <<-SQL
-      WITH zoom_levels AS (
-           SELECT generate_series(0, 15) AS z
-          )
-   SELECT s.id,
-      a.user_id,
-      a.activity_type,
-      a.name AS activity_name,
-      a.start_time AS start_date,
-      z.z AS zoom_level,
-          CASE
-              WHEN (z.z < 10) THEN st_simplify(st_transform(s.geom, 3857), (200)::double precision)
-              WHEN (z.z < 13) THEN st_simplify(st_transform(s.geom, 3857), (50)::double precision)
-              ELSE st_transform(s.geom, 3857)
-          END AS geom
-     FROM ((activity_segments s
-       JOIN activities a ON ((s.activity_id = a.id)))
-       CROSS JOIN zoom_levels z)
-    WHERE ((s.geom IS NOT NULL) AND (NOT st_isempty(s.geom)) AND (st_length(st_transform(s.geom, 3857)) > (
-          CASE
-              WHEN (z.z <= 7) THEN 500
-              WHEN (z.z <= 10) THEN 100
-              ELSE 0
-          END)::double precision));
-  SQL
-  add_index "activity_segments_mvts", ["geom"], name: "idx_mvt_geom", using: :gist
-  add_index "activity_segments_mvts", ["id", "zoom_level"], name: "idx_mvt_unique_refresh", unique: true
-
 end

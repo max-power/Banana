@@ -2,8 +2,22 @@ class ActivitiesController < ApplicationController
   before_action :authenticate!, except: [:show]
 
   def index
-    scope = Current.user.activities.with_map_geojson.reverse_chronologically
-    scope = params[:q].present? ? scope.matching(params[:q]) : scope.where(tour_id: nil)
+    scope = Current.user.activities.with_map_geojson
+    scope = scope.matching(params[:q]) if params[:q].present?
+    scope = scope.where(tour_id: nil) if params[:q].blank?
+    scope = scope.where(activity_type: params[:type]) if params[:type].present?
+    if params[:year].present?
+      scope = scope.where(start_time: Date.new(params[:year].to_i).beginning_of_year..Date.new(params[:year].to_i).end_of_year)
+    end
+    @years = Current.user.activities.where(type: nil).where.not(start_time: nil)
+                    .pluck(Arel.sql("DISTINCT EXTRACT(YEAR FROM start_time)::int")).sort.reverse
+    scope = case params[:sort]
+            when "date_asc"       then scope.chronologically
+            when "distance_desc"  then scope.order(distance: :desc, id: :desc)
+            when "elevation_desc" then scope.order(elevation_gain: :desc, id: :desc)
+            when "name_asc"       then scope.order(Arel.sql("LOWER(name) ASC NULLS LAST"))
+            else                       scope.reverse_chronologically
+            end
     @pagy, @activities = pagy(:offset, scope, limit: 30)
   end
 
@@ -91,10 +105,13 @@ class ActivitiesController < ApplicationController
 
     if params[:activity][:file].present?
       @activity.file.attach(params[:activity][:file])
-      duplicate = detect_duplicate_from_blob(@activity.file.blob)
+      blob = @activity.file.blob
+      blob.analyze unless blob.analyzed?
+      duplicate = detect_duplicate_from_blob(blob)
     end
 
     if @activity.save
+      @activity.touch if @activity.file.attached?
       render json: {
         id: @activity.id,
         name: @activity.name,

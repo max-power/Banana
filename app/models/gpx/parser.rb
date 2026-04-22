@@ -1,11 +1,8 @@
 module GPX
   class Parser
-    attr_reader :profile
-
     def initialize(data, profile: nil)
-      @data    = data
-      @profile = profile || default_profile
-      @cleaner = Track::Cleaner.new(@profile)
+      @data             = data
+      @explicit_profile = profile
     end
 
     def parsed_document
@@ -24,12 +21,16 @@ module GPX
       parsed_document.at_xpath("//gpx")&.[]("creator")&.strip&.presence
     end
 
+    def profile
+      @profile ||= @explicit_profile || ActivityProfile.for(activity_type)
+    end
+
     def raw_points
       @raw_points ||= parsed_document.xpath("//trkpt").map { |node| point_from_xml(node) }
     end
 
     def segments
-      @segments ||= @cleaner.segments(raw_points)
+      @segments ||= cleaner.segments(raw_points)
     end
 
     def clean_points
@@ -37,10 +38,14 @@ module GPX
     end
 
     def clean_report
-      @cleaner.counter
+      cleaner.counter
     end
 
     private
+
+    def cleaner
+      @cleaner ||= Track::Cleaner.new(profile)
+    end
 
     def point_from_xml(node)
       lat  = node[:lat].to_f
@@ -48,10 +53,6 @@ module GPX
       ele  = node.at_xpath("ele")&.text.to_f || 0.0
       time = (Time.iso8601(node.at_xpath("time")&.text).to_f rescue nil)
       Track::Point.new(lat: lat, lon: lon, elevation: ele, time: time)
-    end
-
-    def default_profile
-      ActivityProfile.new(name: "Default", moving_speed_m_s: 0.5, max_speed_m_s: 60.0)
     end
   end
 end

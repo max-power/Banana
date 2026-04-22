@@ -35,18 +35,6 @@ class Activity < ApplicationRecord
   }
 
 
-  #scope :tours, -> { where.not(tour_id: nil) }
-
-  # scope :within_bounds, ->(bounds) {
-  #   where(latitude: bounds[:min_lat]..bounds[:max_lat],
-  #   longitude: bounds[:min_lon]..bounds[:max_lon])
-  # }
-
-  #  validates :name, presence: true
-  #  validates :file, presence: true,
-  #    content_type: ['application/gpx+xml', 'application/xml', 'text/xml'],
-  #    size: { less_than: 10.megabytes }
-
   def map_endpoints
     row = self.class.connection.exec_query(<<~SQL, "map_endpoints", [ id ]).first
       SELECT
@@ -64,24 +52,29 @@ class Activity < ApplicationRecord
     ]
   end
 
+  # Returns [[west, south], [east, north]] in WGS-84, ready for MapLibre fitBounds.
   def bbox
-    RGeo::Cartesian::BoundingBox.new(Geo.factory).add(track).to_geometry
-  end
-
-  def distance_in_meters
-    track&.length || 0
-  end
-
-  # In your Activity model
-  def full_polyline
-    query = <<-SQL
-      SELECT ST_AsEncodedPolyline(ST_LineMerge(ST_Collect(geom))) as polyline
-      FROM activity_segments
-      WHERE activity_id = "#{id}"
-      ORDER BY created_at ASC
+    row = self.class.connection.exec_query(<<~SQL, "bbox", [ id ]).first
+      SELECT ST_XMin(ext) AS west, ST_YMin(ext) AS south,
+             ST_XMax(ext) AS east, ST_YMax(ext) AS north
+      FROM (
+        SELECT ST_Extent(geom)::geometry AS ext
+        FROM activity_segments WHERE activity_id = $1
+      ) s
     SQL
+    return nil unless row && row["west"]
+    [ [ row["west"], row["south"] ], [ row["east"], row["north"] ] ]
+  end
 
-    ActiveRecord::Base.connection.execute(query).first['polyline']
+  def full_polyline
+    self.class.connection.exec_query(<<~SQL, "full_polyline", [ id ]).first&.dig("polyline")
+      SELECT ST_AsEncodedPolyline(
+        ST_MakeLine(dp.geom ORDER BY s.segment_index, (dp).path[1])
+      ) AS polyline
+      FROM activity_segments s,
+           LATERAL ST_DumpPoints(s.geom) dp
+      WHERE s.activity_id = $1
+    SQL
   end
 
 
@@ -107,7 +100,7 @@ class Activity < ApplicationRecord
       device:         meta[:device],
     )
 
-    insert_segments_from_gpx(meta[:segments])
+    insert_segments(meta[:segments])
     update_track_3857
     check_for_duplicate
     ComputeActivityTilesJob.perform_later(id)
@@ -126,17 +119,17 @@ class Activity < ApplicationRecord
   end
 
   def update_track_3857
-    self.class.connection.execute(<<~SQL)
+    self.class.connection.exec_query(<<~SQL, "update_track_3857", [ id ])
       UPDATE activities
       SET track_3857 = (
         SELECT ST_Collect(geom_3857 ORDER BY segment_index)
-        FROM activity_segments WHERE activity_id = '#{id}'
+        FROM activity_segments WHERE activity_id = $1
       )
-      WHERE id = '#{id}'
+      WHERE id = $1
     SQL
   end
 
-  def insert_segments_from_gpx(segments_meta)
+  def insert_segments(segments_meta)
     # Delete old segments to avoid duplicates
     activity_segments.delete_all
 
