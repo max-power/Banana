@@ -1,4 +1,4 @@
-module GPX
+module Track
   Line = Data.define(:start_point, :end_point) do
     def distance
       start_point.distance_to(end_point)

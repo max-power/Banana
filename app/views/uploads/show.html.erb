@@ -4,11 +4,11 @@
     <div class="drop-zone"
          data-bulk-upload-target="dropZone"
          data-action="dragover->bulk-upload#dragover dragleave->bulk-upload#dragleave drop->bulk-upload#drop">
-        <p class="drop-zone-label">Drop GPX files here</p>
+        <p class="drop-zone-label">Drop GPX or FIT files here</p>
         <p class="drop-zone-or">or</p>
         <label class="drop-zone-browse">
             Browse files
-            <input type="file" multiple accept=".gpx"
+            <input type="file" multiple accept=".gpx,.fit"
                    data-bulk-upload-target="input"
                    data-action="change->bulk-upload#upload">
         </label>

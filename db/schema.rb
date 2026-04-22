@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_19_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_22_083821) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
@@ -49,6 +49,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_19_000003) do
     t.decimal "average_speed", precision: 8, scale: 2
     t.datetime "created_at", null: false
     t.text "description"
+    t.string "device"
     t.decimal "distance", precision: 15, scale: 3
     t.uuid "duplicate_of_id"
     t.integer "elapsed_time"
@@ -101,6 +102,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_19_000003) do
     t.check_constraint "st_npoints(geom) >= 2", name: "activity_segments_min_points"
   end
 
+  create_table "activity_tiles", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.datetime "created_at", null: false
+    t.binary "pixels", null: false
+    t.integer "start_year"
+    t.datetime "updated_at", null: false
+    t.uuid "user_id", null: false
+    t.integer "x", null: false
+    t.integer "y", null: false
+    t.integer "z", null: false
+    t.index ["activity_id"], name: "index_activity_tiles_on_activity_id"
+    t.index ["user_id", "z", "x", "y"], name: "index_activity_tiles_on_user_id_and_z_and_x_and_y"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "ip_address"
@@ -128,6 +143,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_19_000003) do
   add_foreign_key "activities", "users"
   add_foreign_key "activity_points", "activity_segments", name: "fk_activity_points_segments", on_delete: :cascade
   add_foreign_key "activity_segments", "activities"
+  add_foreign_key "activity_tiles", "activities", on_delete: :cascade
   add_foreign_key "sessions", "users"
 
   create_view "activity_segments_mvts", materialized: true, sql_definition: <<-SQL

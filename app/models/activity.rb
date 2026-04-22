@@ -1,8 +1,4 @@
 class Activity < ApplicationRecord
-  TYPES = %w[cycling running hiking walking].freeze
-  # Strava activity types:
-  #TYPES = %w[run swim walk hike trail_run mountain_bike_ride gravel_ride e_bike_ride e_mountain_bike_ride alpine_ski badminton backcountry_ski basketball canoeing crossfit cricket dance golf ice_skate inline_skate handcycle high_intensity_interval_training kayaking kitesurf nordic_ski padel pickleball pilates racquetball rock_climbing roller_ski rowing sail skateboard snowboard snowshoe soccer squash stand_up_paddling stair_stepper surfing table_tennis tennis velomobile virtual_ride virtual_run virtual_row volleyball weight_training windsurf wheelchair workout yoga].freeze
-
   belongs_to :user
   belongs_to :duplicate_of, class_name: "Activity", optional: true
   belongs_to :tour, optional: true
@@ -79,10 +75,10 @@ class Activity < ApplicationRecord
   # In your Activity model
   def full_polyline
     query = <<-SQL
-    SELECT ST_AsEncodedPolyline(ST_LineMerge(ST_Collect(geom))) as polyline
-    FROM activity_segments
-    WHERE activity_id = "#{id}"
-    ORDER BY created_at ASC
+      SELECT ST_AsEncodedPolyline(ST_LineMerge(ST_Collect(geom))) as polyline
+      FROM activity_segments
+      WHERE activity_id = "#{id}"
+      ORDER BY created_at ASC
     SQL
 
     ActiveRecord::Base.connection.execute(query).first['polyline']
@@ -108,12 +104,13 @@ class Activity < ApplicationRecord
       elapsed_time:   meta[:time_elapsed_s],
       average_speed:  meta[:average_speed_m_s],
       max_speed:      meta[:max_speed_m_s],
+      device:         meta[:device],
     )
 
     insert_segments_from_gpx(meta[:segments])
     update_track_3857
     check_for_duplicate
-    RefreshMvtViewJob.perform_later
+    ComputeActivityTilesJob.perform_later(id)
   end
 
   def check_for_duplicate
