@@ -54,9 +54,20 @@ module ApplicationHelper
     h > 0 ? "#{h}:%02d:%02d" % [ m, s ] : "%d:%02d" % [ m, s ]
   end
 
-  def format_speed(mps)
+  PACE_TYPES = %w[running walking hiking].freeze
+
+  def pace_type?(activity_type)
+    PACE_TYPES.include?(activity_type.to_s)
+  end
+
+  def format_speed(mps, activity_type: nil)
     return "—" unless mps&.positive?
-    "#{(mps * 3.6).round(1)} km/h"
+    if pace_type?(activity_type)
+      total_seconds = (1000.0 / mps).round
+      "%d:%02d /km" % total_seconds.divmod(60)
+    else
+      "#{(mps * 3.6).round(1)} km/h"
+    end
   end
 
   def activity_svg_path(geojson_str)
