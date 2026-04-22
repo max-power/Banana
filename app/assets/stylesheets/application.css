@@ -718,7 +718,7 @@ details[open] > .tour-card-summary::after {
 
   .activity-row {
     display: grid;
-    grid-template-columns: 5rem 7rem 1fr auto auto auto auto;
+    grid-template-columns: 5rem 4.5rem 1fr 5.5rem 6rem 5.5rem 3rem;
     align-items: center;
     gap: 0;
     padding: 0.35rem 0.75rem;
@@ -730,7 +730,7 @@ details[open] > .tour-card-summary::after {
     }
 
     > span {
-      padding-inline-end: 0.75rem;
+      padding-inline-end: 0.5rem;
     }
     .col-name {
       overflow: hidden;
@@ -740,8 +740,17 @@ details[open] > .tour-card-summary::after {
     .col-type {
       color: #808080;
     }
+    .col-date {
+      color: #a0a0a0;
+    }
+    .col-duration,
+    .col-distance,
+    .col-elevation {
+      text-align: right;
+    }
     .col-actions {
       padding-inline-end: 0;
+      text-align: right;
       color: #b0b0b0;
       a {
         color: inherit;
@@ -1553,6 +1562,12 @@ details[open] > .tour-card-summary::after {
 
 .tour-days .activity-feed {
   gap: 0.5rem;
+}
+
+.tour-days-list {
+  border: 1px solid #e8e8f0;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 /* Auth form */
