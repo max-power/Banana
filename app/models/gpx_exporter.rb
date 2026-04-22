@@ -4,7 +4,7 @@ class GPXExporter
   end
 
   def to_gpx
-    segments = @activity.activity_segments.order(:segment_index)
+    segments = @activity.segments.order(:segment_index)
 
     builder = Nokogiri::XML::Builder.new(encoding: "UTF-8") do |xml|
       xml.gpx(

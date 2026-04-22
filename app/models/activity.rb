@@ -3,7 +3,8 @@ class Activity < ApplicationRecord
   belongs_to :duplicate_of, class_name: "Activity", optional: true
   belongs_to :tour, optional: true
   has_one_attached :file #, service: :local, analyzable: true
-  has_many :activity_segments, dependent: :destroy
+  has_many :segments, class_name: "ActivitySegment", dependent: :destroy
+  has_many :tiles,    class_name: "ActivityTile",    dependent: :destroy
   has_secure_token :share_token
 
   scope :chronologically, -> { order(:start_time, :id) }
@@ -25,7 +26,7 @@ class Activity < ApplicationRecord
       ) AS geojson_path
       SQL
     )
-    .left_joins(:activity_segments)
+    .left_joins(:segments)
     .group("#{table_name}.id")
   }
 
@@ -131,7 +132,7 @@ class Activity < ApplicationRecord
 
   def insert_segments(segments_meta)
     # Delete old segments to avoid duplicates
-    activity_segments.delete_all
+    segments.delete_all
 
     segments_data = Array(segments_meta).map do |seg|
       coords  = seg[:coordinates].map { |lat, lon, ele| Geo.point(lon, lat, ele) }
