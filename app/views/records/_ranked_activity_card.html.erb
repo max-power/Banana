@@ -1,0 +1,20 @@
+<% return if records.empty? %>
+<div class="record-card record-card--ranked">
+  <div class="record-card-header">
+    <span class="record-card-icon"><%= icon %></span>
+    <span class="record-card-title"><%= title %></span>
+  </div>
+  <ol class="record-rank-list">
+    <% records.each_with_index do |r, i| %>
+      <li class="record-rank-item <%= 'record-rank-first' if i == 0 %>">
+        <span class="record-rank-value"><%= r.formatted_value %></span>
+        <span class="record-rank-meta">
+          <%= link_to r.activity.name.presence || "Untitled", activity_path(r.activity) %>
+          <% if r.activity.start_time %>
+            &middot; <%= l(r.activity.start_time, format: :short) %>
+          <% end %>
+        </span>
+      </li>
+    <% end %>
+  </ol>
+</div>
