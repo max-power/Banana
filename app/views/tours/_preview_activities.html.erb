@@ -1,0 +1,16 @@
+<% if activities.any? %>
+  <ul class="tour-preview-list">
+    <% activities.each do |activity| %>
+      <li class="tour-preview-item">
+        <span class="tour-preview-name"><%= activity.name.presence || "Untitled" %></span>
+        <span class="tour-preview-meta">
+          <%= activity.start_time ? l(activity.start_time, format: :short) : "—" %>
+          &middot; <%= format_distance(activity.distance) %>
+        </span>
+      </li>
+    <% end %>
+  </ul>
+  <p class="tour-preview-count"><%= pluralize(activities.size, "activity") %> will be added</p>
+<% else %>
+  <p class="tour-preview-hint">No unassigned activities in this date range</p>
+<% end %>
