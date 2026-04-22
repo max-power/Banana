@@ -3,7 +3,15 @@ Rails.application.routes.draw do
   post "magic_links", to: "magic_links#create", as: :magic_links
   get  "magic_links/verify", to: "magic_links#verify", as: :verify_magic_link
 
-  resources :tours
+  resources :tours do
+    collection do
+      get :preview_activities
+    end
+    member do
+      patch :remove_activity
+      patch :add_activities
+    end
+  end
   resources :activities do
     member do
       get :truncate

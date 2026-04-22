@@ -19,8 +19,11 @@
         <div class="field">
             <%= f.label :activity_type, "Type" %>
             <%= f.select :activity_type,
-                Activity::TYPES.map { |t| [t.humanize, t] },
-                { include_blank: "— select —", selected: @activity.activity_type },
+                grouped_options_for_select(
+                  ActivityType.for_select,
+                  @activity.activity_type
+                ),
+                { include_blank: "— select —" },
                 {} %>
         </div>
 

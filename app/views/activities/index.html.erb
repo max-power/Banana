@@ -1,12 +1,35 @@
 <% content_for :title, "Activities" %>
 
 <div class="activities-index-header">
-    <h1>Activities</h1>
-    <%= form_with url: activities_path, method: :get, class: "activity-search" do |f| %>
-      <%= f.search_field :q, value: params[:q], placeholder: "Search activities…", class: "activity-search-input" %>
-    <% end %>
-    <%= link_to "+ New Tour", new_tour_path, class: "btn-secondary" %>
+  <h1>Activities</h1>
+  <%= link_to "+ New Tour", new_tour_path, class: "btn-secondary" %>
 </div>
+
+<%= form_with url: activities_path, method: :get, class: "activity-toolbar" do |f| %>
+  <%= f.search_field :q, value: params[:q], placeholder: "Search…", class: "activity-search-input" %>
+  <%= select_tag :type,
+        grouped_options_for_select(
+          ActivityType.for_select,
+          params[:type],
+          prompt: "All types"
+        ),
+        class: "activity-toolbar-select",
+        onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :year,
+        options_for_select([["All years", ""]] + @years.map { |y| [y, y] }, params[:year]),
+        class: "activity-toolbar-select",
+        onchange: "this.form.requestSubmit()" %>
+  <%= select_tag :sort,
+        options_for_select([
+          ["Newest first",   "date_desc"],
+          ["Oldest first",   "date_asc"],
+          ["Longest",        "distance_desc"],
+          ["Most elevation", "elevation_desc"],
+          ["Name A–Z",       "name_asc"],
+        ], params[:sort] || "date_desc"),
+        class: "activity-toolbar-select",
+        onchange: "this.form.requestSubmit()" %>
+<% end %>
 
 <div class="activities-index">
   <% if @activities.empty? %>

@@ -4,6 +4,7 @@
     data-controller="heatmap"
     data-heatmap-target="map"
     data-heatmap-years-value="<%= @years.to_json %>"
+    data-heatmap-types-value="<%= @types.to_json %>"
     <% if @bounds %>
     data-heatmap-bounds-value="<%= @bounds.to_json %>"
     <% end %>>
