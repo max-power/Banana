@@ -23,10 +23,10 @@ export default class extends Controller {
     event.preventDefault();
     this.dropZoneTarget.classList.remove("drop-zone--over");
     const files = Array.from(event.dataTransfer.files).filter((f) =>
-      f.name.endsWith(".gpx"),
+      f.name.endsWith(".gpx") || f.name.endsWith(".fit"),
     );
     if (files.length === 0) {
-      this.showDropError("Only .gpx files are supported.");
+      this.showDropError("Only .gpx and .fit files are supported.");
       return;
     }
     files.forEach((file) => this.uploadFile(file));
