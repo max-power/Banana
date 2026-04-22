@@ -1,0 +1,21 @@
+<% return if records.empty? %>
+<div class="record-card record-card--ranked">
+  <div class="record-card-header">
+    <span class="record-card-icon"><%= icon %></span>
+    <span class="record-card-title"><%= title %></span>
+  </div>
+  <ol class="record-rank-list">
+    <% records.each_with_index do |r, i| %>
+      <li class="record-rank-item <%= 'record-rank-first' if i == 0 %>">
+        <span class="record-rank-value"><%= r.formatted_distance %></span>
+        <span class="record-rank-meta">
+          <%= r.label %>
+          &middot; <%= r.formatted_elevation %>
+          <% if r.activity_count > 1 %>
+            &middot; <%= pluralize(r.activity_count, "activity") %>
+          <% end %>
+        </span>
+      </li>
+    <% end %>
+  </ol>
+</div>

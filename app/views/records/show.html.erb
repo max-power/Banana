@@ -7,39 +7,31 @@
   <section class="records-section">
     <h2>Single activity</h2>
     <div class="records-grid">
-
-      <% if (r = @records.longest) %>
-        <%= render "records/activity_record",
-              label:    "Longest",
-              record:   r,
-              icon:     "↔" %>
-      <% end %>
-
-      <% if (r = @records.most_elevation) %>
-        <%= render "records/activity_record",
-              label:    "Most elevation",
-              record:   r,
-              icon:     "↑" %>
-      <% end %>
-
-      <% if (r = @records.longest_moving_time) %>
-        <%= render "records/activity_record",
-              label:    "Longest time",
-              record:   r,
-              icon:     "⏱" %>
-      <% end %>
-
+      <%= render "records/ranked_activity_card", title: "Longest",       icon: "↔", records: @records.longest %>
+      <%= render "records/ranked_activity_card", title: "Most elevation", icon: "↑", records: @records.most_elevation %>
+      <%= render "records/ranked_activity_card", title: "Longest time",   icon: "⏱", records: @records.longest_moving_time %>
     </div>
 
     <% fastest = @records.fastest_by_type %>
     <% if fastest.any? %>
-      <h3 class="records-subheading">Fastest average <span class="records-subheading-note">(min. 5 km)</span></h3>
+      <h3 class="records-subheading">
+        Fastest average <span class="records-subheading-note">(min. 5 km, best per type)</span>
+      </h3>
       <div class="records-grid">
         <% fastest.each do |r| %>
-          <%= render "records/activity_record",
-                label:    r.activity.activity_type&.humanize || "Activity",
-                record:   r,
-                icon:     "⚡" %>
+          <div class="record-card">
+            <div class="record-card-icon">⚡</div>
+            <div class="record-card-body">
+              <p class="record-label"><%= r.activity.activity_type&.humanize || "Activity" %></p>
+              <p class="record-value"><%= r.formatted_value %></p>
+              <p class="record-meta">
+                <%= link_to r.activity.name.presence || "Untitled", activity_path(r.activity) %>
+                <% if r.activity.start_time %>
+                  &middot; <%= l(r.activity.start_time, format: :short) %>
+                <% end %>
+              </p>
+            </div>
+          </div>
         <% end %>
       </div>
     <% end %>
@@ -49,40 +41,9 @@
   <section class="records-section">
     <h2>Best periods</h2>
     <div class="records-grid">
-
-      <% if (r = @records.best_day) %>
-        <div class="record-card record-card--period">
-          <div class="record-card-icon">📅</div>
-          <div class="record-card-body">
-            <p class="record-label">Best day</p>
-            <p class="record-value"><%= r.formatted_distance %></p>
-            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
-          </div>
-        </div>
-      <% end %>
-
-      <% if (r = @records.best_week) %>
-        <div class="record-card record-card--period">
-          <div class="record-card-icon">📆</div>
-          <div class="record-card-body">
-            <p class="record-label">Best week</p>
-            <p class="record-value"><%= r.formatted_distance %></p>
-            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
-          </div>
-        </div>
-      <% end %>
-
-      <% if (r = @records.best_month) %>
-        <div class="record-card record-card--period">
-          <div class="record-card-icon">🗓</div>
-          <div class="record-card-body">
-            <p class="record-label">Best month</p>
-            <p class="record-value"><%= r.formatted_distance %></p>
-            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
-          </div>
-        </div>
-      <% end %>
-
+      <%= render "records/ranked_period_card", title: "Best days",   icon: "📅", records: @records.best_days %>
+      <%= render "records/ranked_period_card", title: "Best weeks",  icon: "📆", records: @records.best_weeks %>
+      <%= render "records/ranked_period_card", title: "Best months", icon: "🗓",  records: @records.best_months %>
     </div>
   </section>
 
@@ -92,7 +53,7 @@
     <div class="records-grid">
 
       <% current = @records.current_streak %>
-      <div class="record-card record-card--streak <%= 'record-card--streak-active' if current.days > 0 %>">
+      <div class="record-card <%= 'record-card--streak-active' if current.days > 0 %>">
         <div class="record-card-icon">🔥</div>
         <div class="record-card-body">
           <p class="record-label">Current streak</p>
@@ -103,16 +64,23 @@
         </div>
       </div>
 
-      <% if (longest = @records.longest_streak) && longest.days > 0 %>
-        <div class="record-card record-card--streak">
-          <div class="record-card-icon">🏆</div>
-          <div class="record-card-body">
-            <p class="record-label">Longest streak</p>
-            <p class="record-value"><%= pluralize(longest.days, "day") %></p>
-            <p class="record-meta">
-              <%= longest.start_date.strftime("%b %-d") %> – <%= longest.end_date.strftime("%b %-d, %Y") %>
-            </p>
+      <% top = @records.top_streaks %>
+      <% if top.any? %>
+        <div class="record-card record-card--ranked">
+          <div class="record-card-header">
+            <span class="record-card-icon">🏆</span>
+            <span class="record-card-title">Longest streaks</span>
           </div>
+          <ol class="record-rank-list">
+            <% top.each_with_index do |streak, i| %>
+              <li class="record-rank-item <%= 'record-rank-first' if i == 0 %>">
+                <span class="record-rank-value"><%= pluralize(streak.days, "day") %></span>
+                <span class="record-rank-meta">
+                  <%= streak.start_date.strftime("%b %-d") %> – <%= streak.end_date.strftime("%b %-d, %Y") %>
+                </span>
+              </li>
+            <% end %>
+          </ol>
         </div>
       <% end %>
 

@@ -13,28 +13,27 @@ class PersonalRecords
     @scope = user.activities.where(type: nil)
   end
 
-  # ── Single-activity records ──────────────────────────────────────────────────
+  # ── Single-activity records (top 3) ─────────────────────────────────────────
 
   def longest
-    activity = @scope.where.not(distance: nil).order(distance: :desc).first
-    return nil unless activity
-    ActivityRecord.new(activity: activity, formatted_value: km(activity.distance))
+    @scope.where.not(distance: nil).order(distance: :desc).limit(3).map do |a|
+      ActivityRecord.new(activity: a, formatted_value: km(a.distance))
+    end
   end
 
   def most_elevation
-    activity = @scope.where.not(elevation_gain: nil).order(elevation_gain: :desc).first
-    return nil unless activity
-    ActivityRecord.new(activity: activity, formatted_value: "↑ #{activity.elevation_gain.round} m")
+    @scope.where.not(elevation_gain: nil).order(elevation_gain: :desc).limit(3).map do |a|
+      ActivityRecord.new(activity: a, formatted_value: "↑ #{a.elevation_gain.round} m")
+    end
   end
 
   def longest_moving_time
-    activity = @scope.where.not(moving_time: nil).order(moving_time: :desc).first
-    return nil unless activity
-    ActivityRecord.new(activity: activity, formatted_value: fmt_duration(activity.moving_time))
+    @scope.where.not(moving_time: nil).order(moving_time: :desc).limit(3).map do |a|
+      ActivityRecord.new(activity: a, formatted_value: fmt_duration(a.moving_time))
+    end
   end
 
-  # Fastest average speed per activity type (exclude very short activities < 5 km)
-  # Returns an array of ActivityRecord, one per type that has data.
+  # Best per activity type — one winner per type (top 3 types by count of activities)
   def fastest_by_type
     type_bests = @scope
       .where("distance >= 5000")
@@ -53,61 +52,49 @@ class PersonalRecords
     end
   end
 
-  # ── Period bests ─────────────────────────────────────────────────────────────
+  # ── Period bests (top 3) ─────────────────────────────────────────────────────
 
-  def best_day
-    row = period_query("DATE(start_time AT TIME ZONE 'UTC')")
-    return nil unless row
-    PeriodRecord.new(
-      label:               Date.parse(row["period"]).strftime("%b %-d, %Y"),
-      formatted_distance:  km(row["total_distance"].to_f),
-      formatted_elevation: "↑ #{row["total_elevation"].to_i} m",
-      activity_count:      row["activity_count"].to_i
-    )
+  def best_days
+    period_records("DATE(start_time AT TIME ZONE 'UTC')") do |row|
+      Date.parse(row["period"]).strftime("%b %-d, %Y")
+    end
   end
 
-  def best_week
-    row = period_query("DATE_TRUNC('week', start_time AT TIME ZONE 'UTC')")
-    return nil unless row
-    week_start = Date.parse(row["period"])
-    PeriodRecord.new(
-      label:               "#{week_start.strftime("%b %-d")} – #{(week_start + 6).strftime("%b %-d, %Y")}",
-      formatted_distance:  km(row["total_distance"].to_f),
-      formatted_elevation: "↑ #{row["total_elevation"].to_i} m",
-      activity_count:      row["activity_count"].to_i
-    )
+  def best_weeks
+    period_records("DATE_TRUNC('week', start_time AT TIME ZONE 'UTC')") do |row|
+      week_start = Date.parse(row["period"])
+      "#{week_start.strftime("%b %-d")} – #{(week_start + 6).strftime("%b %-d, %Y")}"
+    end
   end
 
-  def best_month
-    row = period_query("DATE_TRUNC('month', start_time AT TIME ZONE 'UTC')")
-    return nil unless row
-    PeriodRecord.new(
-      label:               Date.parse(row["period"]).strftime("%B %Y"),
-      formatted_distance:  km(row["total_distance"].to_f),
-      formatted_elevation: "↑ #{row["total_elevation"].to_i} m",
-      activity_count:      row["activity_count"].to_i
-    )
+  def best_months
+    period_records("DATE_TRUNC('month', start_time AT TIME ZONE 'UTC')") do |row|
+      Date.parse(row["period"]).strftime("%B %Y")
+    end
   end
 
   # ── Streaks ──────────────────────────────────────────────────────────────────
 
   def current_streak
-    streak_ending_on(Date.today) || streak_ending_on(Date.yesterday) || StreakRecord.new(days: 0, start_date: nil, end_date: nil)
+    streak_ending_on(Date.today) || streak_ending_on(Date.yesterday) ||
+      StreakRecord.new(days: 0, start_date: nil, end_date: nil)
   end
 
-  def longest_streak
-    result = connection.exec_query(streak_sql, "longest_streak", [ @user.id ]).max_by { |r| r["days"].to_i }
-    return nil unless result
-    StreakRecord.new(
-      days:       result["days"].to_i,
-      start_date: Date.parse(result["start_date"]),
-      end_date:   Date.parse(result["end_date"])
-    )
+  def top_streaks
+    connection.exec_query(streak_sql, "top_streaks", [ @user.id ])
+              .first(3)
+              .map do |row|
+      StreakRecord.new(
+        days:       row["days"].to_i,
+        start_date: Date.parse(row["start_date"]),
+        end_date:   Date.parse(row["end_date"])
+      )
+    end
   end
 
   private
 
-  def period_query(truncation_expr)
+  def period_records(truncation_expr, &label_formatter)
     sql = <<~SQL
       SELECT #{truncation_expr}::text AS period,
              SUM(distance)       AS total_distance,
@@ -120,22 +107,19 @@ class PersonalRecords
         AND distance IS NOT NULL AND distance > 0
       GROUP BY #{truncation_expr}
       ORDER BY total_distance DESC
-      LIMIT 1
+      LIMIT 3
     SQL
-    connection.exec_query(sql, "period_best", [ @user.id ]).first
+    connection.exec_query(sql, "period_best", [ @user.id ]).map do |row|
+      PeriodRecord.new(
+        label:               label_formatter.call(row),
+        formatted_distance:  km(row["total_distance"].to_f),
+        formatted_elevation: "↑ #{row["total_elevation"].to_i} m",
+        activity_count:      row["activity_count"].to_i
+      )
+    end
   end
 
   def streak_ending_on(date)
-    result = streak_sql_ending(date)
-    return nil unless result && result["days"].to_i > 0
-    StreakRecord.new(
-      days:       result["days"].to_i,
-      start_date: Date.parse(result["start_date"]),
-      end_date:   Date.parse(result["end_date"])
-    )
-  end
-
-  def streak_sql_ending(date)
     sql = <<~SQL
       WITH active_dates AS (
         SELECT DISTINCT DATE(start_time AT TIME ZONE 'UTC') AS d
@@ -159,7 +143,13 @@ class PersonalRecords
       )
       SELECT * FROM streak LIMIT 1
     SQL
-    connection.exec_query(sql, "current_streak", [ @user.id, date.to_s ]).first
+    result = connection.exec_query(sql, "current_streak", [ @user.id, date.to_s ]).first
+    return nil unless result && result["days"].to_i > 0
+    StreakRecord.new(
+      days:       result["days"].to_i,
+      start_date: Date.parse(result["start_date"]),
+      end_date:   Date.parse(result["end_date"])
+    )
   end
 
   def streak_sql
