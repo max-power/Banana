@@ -1,0 +1,121 @@
+<% content_for :title, "Personal Records" %>
+
+<div class="records-page">
+  <h1>Personal Records</h1>
+
+  <%# ── Single-activity bests ─────────────────────────────────────────────── %>
+  <section class="records-section">
+    <h2>Single activity</h2>
+    <div class="records-grid">
+
+      <% if (r = @records.longest) %>
+        <%= render "records/activity_record",
+              label:    "Longest",
+              record:   r,
+              icon:     "↔" %>
+      <% end %>
+
+      <% if (r = @records.most_elevation) %>
+        <%= render "records/activity_record",
+              label:    "Most elevation",
+              record:   r,
+              icon:     "↑" %>
+      <% end %>
+
+      <% if (r = @records.longest_moving_time) %>
+        <%= render "records/activity_record",
+              label:    "Longest time",
+              record:   r,
+              icon:     "⏱" %>
+      <% end %>
+
+    </div>
+
+    <% fastest = @records.fastest_by_type %>
+    <% if fastest.any? %>
+      <h3 class="records-subheading">Fastest average <span class="records-subheading-note">(min. 5 km)</span></h3>
+      <div class="records-grid">
+        <% fastest.each do |r| %>
+          <%= render "records/activity_record",
+                label:    r.activity.activity_type&.humanize || "Activity",
+                record:   r,
+                icon:     "⚡" %>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ── Period bests ──────────────────────────────────────────────────────── %>
+  <section class="records-section">
+    <h2>Best periods</h2>
+    <div class="records-grid">
+
+      <% if (r = @records.best_day) %>
+        <div class="record-card record-card--period">
+          <div class="record-card-icon">📅</div>
+          <div class="record-card-body">
+            <p class="record-label">Best day</p>
+            <p class="record-value"><%= r.formatted_distance %></p>
+            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <% if (r = @records.best_week) %>
+        <div class="record-card record-card--period">
+          <div class="record-card-icon">📆</div>
+          <div class="record-card-body">
+            <p class="record-label">Best week</p>
+            <p class="record-value"><%= r.formatted_distance %></p>
+            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <% if (r = @records.best_month) %>
+        <div class="record-card record-card--period">
+          <div class="record-card-icon">🗓</div>
+          <div class="record-card-body">
+            <p class="record-label">Best month</p>
+            <p class="record-value"><%= r.formatted_distance %></p>
+            <p class="record-meta"><%= r.label %> &middot; <%= pluralize(r.activity_count, "activity") %> &middot; <%= r.formatted_elevation %></p>
+          </div>
+        </div>
+      <% end %>
+
+    </div>
+  </section>
+
+  <%# ── Streaks ────────────────────────────────────────────────────────────── %>
+  <section class="records-section">
+    <h2>Streaks</h2>
+    <div class="records-grid">
+
+      <% current = @records.current_streak %>
+      <div class="record-card record-card--streak <%= 'record-card--streak-active' if current.days > 0 %>">
+        <div class="record-card-icon">🔥</div>
+        <div class="record-card-body">
+          <p class="record-label">Current streak</p>
+          <p class="record-value"><%= pluralize(current.days, "day") %></p>
+          <% if current.start_date && current.days > 1 %>
+            <p class="record-meta"><%= current.start_date.strftime("%b %-d") %> – today</p>
+          <% end %>
+        </div>
+      </div>
+
+      <% if (longest = @records.longest_streak) && longest.days > 0 %>
+        <div class="record-card record-card--streak">
+          <div class="record-card-icon">🏆</div>
+          <div class="record-card-body">
+            <p class="record-label">Longest streak</p>
+            <p class="record-value"><%= pluralize(longest.days, "day") %></p>
+            <p class="record-meta">
+              <%= longest.start_date.strftime("%b %-d") %> – <%= longest.end_date.strftime("%b %-d, %Y") %>
+            </p>
+          </div>
+        </div>
+      <% end %>
+
+    </div>
+  </section>
+</div>

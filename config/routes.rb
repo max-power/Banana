@@ -33,6 +33,7 @@ Rails.application.routes.draw do
     get ":z/:x/:y.:format", to: "tiles#show"
   end
 
+  resource :records, only: [ :show ]
   resource :account, only: [ :show, :update ]
   resource :upload, only: [ :show, :create ]
 
