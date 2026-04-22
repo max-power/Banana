@@ -133,8 +133,11 @@ class ActivitiesController < ApplicationController
 
   def destroy
     @activity = Current.user.activities.find(params.expect(:id))
-    @activity.destroy
-    redirect_to activities_path, notice: "Activity deleted."
+    if @activity.destroy
+      redirect_to activities_path, notice: "Activity deleted."
+    else
+      redirect_to activity_path(@activity), alert: "Could not delete activity: #{@activity.errors.full_messages.to_sentence}"
+    end
   end
 
   private

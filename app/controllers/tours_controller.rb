@@ -68,8 +68,11 @@ class ToursController < ApplicationController
 
   def destroy
     @tour.activities.update_all(tour_id: nil)
-    @tour.destroy
-    redirect_to activities_path, notice: "Tour deleted."
+    if @tour.destroy
+      redirect_to activities_path, notice: "Tour deleted."
+    else
+      redirect_to tour_path(@tour), alert: "Could not delete tour: #{@tour.errors.full_messages.to_sentence}"
+    end
   end
 
   def preview_activities
