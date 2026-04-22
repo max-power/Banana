@@ -1,0 +1,28 @@
+<% content_for :title, @profile_user.email %>
+
+<div class="public-profile">
+    <header class="profile-header">
+        <h1><%= @profile_user.email %></h1>
+    </header>
+
+    <% if @activities.any? %>
+        <section class="month-activities">
+            <table class="activity-table">
+                <tbody>
+                    <% @activities.each do |activity| %>
+                        <tr class="activity-row" id="<%= dom_id(activity) %>">
+                            <td class="col-type"><%= activity.activity_type&.humanize || "—" %></td>
+                            <td class="col-date number"><%= activity.start_time ? l(activity.start_time, format: :short) : "—" %></td>
+                            <td class="col-name"><%= link_to activity.name.presence || "Untitled", activity_path(activity) %></td>
+                            <td class="col-distance number"><%= format_distance(activity.distance) %></td>
+                            <td class="col-elevation number">↑ <%= format_elevation(activity.elevation_gain) %></td>
+                            <td class="col-duration number"><%= format_duration(activity.moving_time) %></td>
+                        </tr>
+                    <% end %>
+                </tbody>
+            </table>
+        </section>
+    <% else %>
+        <p class="empty-state">No activities yet.</p>
+    <% end %>
+</div>

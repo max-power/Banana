@@ -1,0 +1,103 @@
+<% content_for :title, @record.name.presence || "Activity" %>
+
+<div class="activity-show">
+  <header class="activity-header">
+    <div class="activity-header-main">
+      <% if @record.is_a?(Tour) %>
+        <p class="activity-type">Tour &middot; <%= pluralize(@record.days, "day") %></p>
+      <% else %>
+        <p class="activity-type"><%= @record.activity_type&.humanize %></p>
+      <% end %>
+      <h1><%= @record.name.presence || "Untitled" %></h1>
+      <p class="activity-date"><%= @record.start_time ? l(@record.start_time, format: :long) : "—" %></p>
+    </div>
+    <% if @owner.public_profile? %>
+      <nav class="activity-actions">
+        <%= link_to "← #{@owner.email}", public_profile_path(@owner) %>
+      </nav>
+    <% end %>
+  </header>
+
+  <dl class="activity-stats-bar">
+    <div class="stat-bar-item">
+      <dt>Distance</dt>
+      <dd><%= format_distance(@record.distance) %></dd>
+    </div>
+    <div class="stat-bar-item">
+      <dt>Moving time</dt>
+      <dd><%= format_duration(@record.moving_time) %></dd>
+    </div>
+    <div class="stat-bar-item">
+      <dt>Elapsed time</dt>
+      <dd><%= format_duration(@record.elapsed_time) %></dd>
+    </div>
+    <div class="stat-bar-item">
+      <dt>↑ Elevation gain</dt>
+      <dd><%= format_elevation(@record.elevation_gain) %></dd>
+    </div>
+    <div class="stat-bar-item">
+      <dt>↓ Elevation loss</dt>
+      <dd><%= format_elevation(@record.elevation_loss) %></dd>
+    </div>
+    <% unless @record.is_a?(Tour) %>
+      <div class="stat-bar-item">
+        <dt>Avg speed</dt>
+        <dd><%= format_speed(@record.average_speed) %></dd>
+      </div>
+      <div class="stat-bar-item">
+        <dt>Max speed</dt>
+        <dd><%= format_speed(@record.max_speed) %></dd>
+      </div>
+    <% end %>
+  </dl>
+
+  <div data-controller="activity-map"
+    data-activity-map-url-value="<%= shared_activity_url(@record.share_token, format: :geojson) %>"
+    data-activity-map-arrow-url-value="<%= asset_path('arrow-right.svg') %>">
+    <figure class="activity-map" data-activity-map-target="map">
+      <div class="map-playbar">
+        <button class="map-play-btn" data-activity-map-target="playButton"
+                data-action="click->activity-map#togglePlay" disabled>▶</button>
+        <div class="map-timeline" data-activity-map-target="timeline">
+          <div class="map-timeline-track"
+               data-activity-map-target="timelineTrack"
+               data-action="mousedown->activity-map#seekStart">
+            <div class="map-timeline-fill" data-activity-map-target="timelineFill"></div>
+            <div class="map-timeline-thumb" data-activity-map-target="timelineThumb"></div>
+          </div>
+          <span class="map-timeline-label" data-activity-map-target="timelineLabel"></span>
+        </div>
+      </div>
+      <div class="map-style-switcher">
+        <% [
+          { id: "bright",   label: "Bright",   bg: "#f0ece4", road1: "#d4a96a", road2: "#c8a070", water: "#a8d4e6", wx: 0,  wy: 24, ww: 18, wh: 12 },
+          { id: "liberty",  label: "Liberty",  bg: "#f5ede3", road1: "#c8755a", road2: "#c8755a", water: "#b8d4a0", wx: 32, wy: 0,  ww: 20, wh: 14 },
+          { id: "positron", label: "Positron", bg: "#f4f4f0", road1: "#b0b0b0", road2: "#b8b8b8", water: "#ccdce8", wx: 34, wy: 22, ww: 18, wh: 14 },
+          { id: "dark",     label: "Dark",     bg: "#1a1a2e", road1: "#4a4a7a", road2: "#3a3a6a", water: "#0d2035", wx: 0,  wy: 24, ww: 20, wh: 12 },
+          { id: "fiord",    label: "Fiord",    bg: "#253448", road1: "#3d5570", road2: "#344d65", water: "#1a2535", wx: 30, wy: 18, ww: 22, wh: 18 },
+        ].each do |s| %>
+          <button class="map-style-option"
+                  title="<%= s[:label] %>"
+                  data-activity-map-target="styleOption"
+                  data-activity-map-style-param="<%= s[:id] %>"
+                  data-action="click->activity-map#changeStyle">
+            <svg class="map-style-thumb" viewBox="0 0 52 36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+              <rect width="52" height="36" fill="<%= s[:bg] %>"/>
+              <rect x="<%= s[:wx] %>" y="<%= s[:wy] %>" width="<%= s[:ww] %>" height="<%= s[:wh] %>" fill="<%= s[:water] %>" opacity="0.7"/>
+              <path d="M0 18 L52 18" stroke="<%= s[:road1] %>" stroke-width="3"/>
+              <path d="M22 0 L22 36" stroke="<%= s[:road2] %>" stroke-width="2"/>
+            </svg>
+          </button>
+        <% end %>
+      </div>
+    </figure>
+    <figure class="activity-elevation" data-activity-map-target="elevation"></figure>
+  </div>
+
+  <div class="share-embed">
+    <p class="share-embed-label">Embed</p>
+    <input class="share-embed-code" readonly
+           value='<iframe src="<%= embed_activity_url(@record.share_token) %>" width="600" height="400" frameborder="0" style="border-radius:8px"></iframe>'
+           onclick="this.select()">
+  </div>
+</div>

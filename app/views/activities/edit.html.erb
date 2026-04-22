@@ -1,0 +1,45 @@
+<% content_for :title, "Edit #{@activity.name}" %>
+
+<div class="tour-form">
+    <header class="activity-header">
+        <div>
+            <h1>Edit activity</h1>
+        </div>
+        <nav class="activity-actions">
+            <%= link_to "← Back", activity_path(@activity) %>
+        </nav>
+    </header>
+
+    <%= form_with model: @activity do |f| %>
+        <div class="field">
+            <%= f.label :name, "Name" %>
+            <%= f.text_field :name, autofocus: true %>
+        </div>
+
+        <div class="field">
+            <%= f.label :activity_type, "Type" %>
+            <%= f.select :activity_type,
+                grouped_options_for_select(
+                  ActivityType.for_select,
+                  @activity.activity_type
+                ),
+                { include_blank: "— select —" },
+                {} %>
+        </div>
+
+        <div class="field">
+            <%= f.label :description, "Notes" %>
+            <%= f.text_area :description, rows: 4 %>
+        </div>
+
+        <div class="form-actions">
+            <%= f.submit "Save" %>
+            <%= link_to "Cancel", activity_path(@activity) %>
+        </div>
+    <% end %>
+
+    <div class="danger-zone">
+        <%= button_to "Delete activity", activity_path(@activity), method: :delete,
+            data: { turbo_confirm: "Delete \"#{@activity.name}\"? This cannot be undone." } %>
+    </div>
+</div>

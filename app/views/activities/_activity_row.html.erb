@@ -1,0 +1,9 @@
+<li class="activity-row" id="<%= dom_id(activity) %>">
+  <span class="col-type"><%= activity.activity_type&.humanize || "—" %></span>
+  <span class="col-date number"><%= l(activity.start_time.to_datetime, format: :short) if activity.start_time %></span>
+  <span class="col-name"><%= link_to activity.name.presence || "Untitled", activity_path(activity) %></span>
+  <span class="col-duration number"><%= format_duration(activity.moving_time) %></span>
+  <span class="col-distance number"><%= format_distance(activity.distance) %></span>
+  <span class="col-elevation number">↑ <%= format_elevation(activity.elevation_gain) %></span>
+  <span class="col-actions"><%= link_to "Edit", edit_activity_path(activity) %></span>
+</li>

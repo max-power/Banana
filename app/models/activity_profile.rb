@@ -1,13 +1,33 @@
 ActivityProfile = Data.define(:name, :moving_speed_m_s, :max_speed_m_s) do
+  PROFILES = {
+    cycling: new(name: "Cycling", moving_speed_m_s: 1.5, max_speed_m_s: 20.0),
+    running: new(name: "Running", moving_speed_m_s: 0.7, max_speed_m_s:  8.0),
+    walking: new(name: "Walking", moving_speed_m_s: 0.3, max_speed_m_s:  3.0),
+  }.freeze
+
+  ALIASES = {
+    mountain_bike_ride:   :cycling,
+    gravel_ride:          :cycling,
+    e_bike_ride:          :cycling,
+    e_mountain_bike_ride: :cycling,
+    velomobile:           :cycling,
+    virtual_ride:         :cycling,
+    handcycle:            :cycling,
+    trail_run:            :running,
+    virtual_run:          :running,
+    hiking:               :walking,
+    inline_skate:         :walking,
+    roller_ski:           :walking,
+  }.freeze
+
+  DEFAULT = new(name: "Default", moving_speed_m_s: 0.5, max_speed_m_s: 60.0)
+
+  def self.for(activity_type)
+    key = ALIASES[activity_type.to_sym] || activity_type.to_sym
+    PROFILES[key] || DEFAULT
+  end
+
   def valid_speed?(speed)
-    valid_moving_speed?(speed) && valid_max_speed?(speed)
-  end
-
-  def valid_moving_speed?(speed)
-    speed >= moving_speed_m_s
-  end
-
-  def valid_max_speed?(speed)
-    speed <= max_speed_m_s
+    speed >= moving_speed_m_s && speed <= max_speed_m_s
   end
 end

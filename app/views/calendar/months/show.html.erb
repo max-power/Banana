@@ -1,85 +1,108 @@
-<article>
-    <header>
-        <h1>
-            <%= link_to @month.year, year_calendar_path(@month.year) %>
-            <%= @month.month_name %>
-        </h1>
-        <p>
-            <%= link_to @month.prev.month_name, month_calendar_path(@month.prev.year, @month.prev.number) %>
-            <%= link_to @month.next.month_name, month_calendar_path(@month.next.year, @month.next.number) %>
-        </p>
+<% content_for :title, "#{@month.month_name} #{@month.year}" %>
+
+<article class="month-calendar">
+    <header class="month-header-nav">
+        <div class="month-nav">
+            <%= link_to "←", month_calendar_path(@month.prev.year, @month.prev.number) %>
+            <h1><%= link_to @month.year, year_calendar_path(@month.year) %> / <%= @month.month_name %></h1>
+            <%= link_to "→", month_calendar_path(@month.next.year, @month.next.number) %>
+        </div>
+
+        <% total_distance  = @statistics.sum(&:distance) %>
+        <% total_elevation = @statistics.sum(&:elevation_gain) %>
+        <% total_time      = @statistics.sum(&:moving_time) %>
+        <% total_count     = @statistics.sum(&:activities_count) %>
+
+        <% if total_count > 0 %>
+            <dl class="calendar-stats">
+                <div class="stat">
+                    <dt>kilometers</dt>
+                    <dd class="number"><%= number_with_delimiter((total_distance / 1000).round) %></dd>
+                </div>
+                <div class="stat">
+                    <dt>hours</dt>
+                    <dd class="number"><%= (total_time / 3600.0).round %></dd>
+                </div>
+                <div class="stat">
+                    <dt>activities</dt>
+                    <dd class="number"><%= total_count %></dd>
+                </div>
+            </dl>
+        <% end %>
     </header>
 
-    <% @month.each_week do |week| %>
-        <article class="calendar-week">
-            <h2><%= week %></h2>
-            <p><%= l(week.begin, format: :short) %> - <%= l(week.end, format: :short) %></p>
-            <ul>
-            <% week.each_day do |date| %>
-                <li>
-                    <div class="calendar-dayname"><%= Date::ABBR_DAYNAMES[date.wday] %></div>
-                    <% activities = @activities.select { |a| a.start_time.to_date == date } %>
-                    <% if activities.present? %>
-                        <div class="day-bubble"><%= format_distance activities.sum(&:distance) %></div>
-                    <% else %>
-                        <div class="day-rest">Rest</div>
-                    <% end %>
-                </li>
+    <% max_dist = max_day_distance(@activities) %>
+    <% activities_by_date = @activities.group_by { |a| a.start_time&.to_date } %>
+
+    <%# Color legend for types present this month %>
+    <% present_types = @activities.map(&:activity_type).compact.uniq %>
+    <% if present_types.any? %>
+        <div class="activity-type-legend">
+            <% present_types.each do |type| %>
+                <span class="legend-item">
+                    <span class="legend-dot" style="background: <%= activity_type_color(type) %>"></span>
+                    <%= type.humanize %>
+                </span>
             <% end %>
-            </ul>
-        </article>
+        </div>
     <% end %>
 
-    <section class="activities">
-        <%= render partial: "activities/activity_calendar", collection: @activities, as: :activity %>
-    </section>
+    <div class="month-weeks">
+        <%# Single weekday header row %>
+        <% first_week_days = [] %>
+        <% @month.each_week { |w| first_week_days = w.each_day.to_a; break } %>
+        <div class="month-dayname-header">
+            <% first_week_days.each do |d| %>
+                <span class="calendar-dayname"><%= d.strftime('%a') %></span>
+            <% end %>
+        </div>
 
-
+        <% @month.each_week do |week| %>
+            <% week_days = week.each_day.to_a %>
+            <% week_activities = week_days.flat_map { |d| activities_by_date[d] || [] } %>
+            <% week_dist_km = week_activities.sum(&:distance) / 1000.0 %>
+            <div class="calendar-week">
+                <div class="week-label">
+                    <span class="week-number">W<%= week_days.first.cweek %></span>
+                    <span class="week-range"><%= week_range_label(week_days) %></span>
+                    <% if week_dist_km > 0 %>
+                        <span class="week-dist"><%= "%.1f" % week_dist_km %> km</span>
+                    <% end %>
+                </div>
+                <ul>
+                    <% week_days.each do |date| %>
+                        <li class="<%= 'other-month' if date.month != @month.number %>">
+                            <% day_activities = activities_by_date[date] || [] %>
+                            <% if day_activities.any? %>
+                                <div class="day-circles">
+                                    <% day_activities.group_by(&:activity_type).each do |type, acts| %>
+                                        <div class="day-circle-wrap">
+                                            <div class="day-bubble" style="<%= day_bubble_style(acts, max_dist) %>">
+                                                <%= "%.1f" % (acts.sum(&:distance) / 1000.0) %>
+                                            </div>
+                                            <% if acts.size > 1 %>
+                                                <span class="day-circle-badge"><%= acts.size %></span>
+                                            <% end %>
+                                        </div>
+                                    <% end %>
+                                </div>
+                                <div class="day-popover">
+                                    <div class="day-popover-date"><%= date.strftime('%a, %b %-d') %></div>
+                                    <% day_activities.each do |activity| %>
+                                        <%= link_to activity_path(activity), class: "day-popover-item" do %>
+                                            <span class="day-popover-dot" style="background: <%= activity_type_color(activity.activity_type) %>"></span>
+                                            <span class="day-popover-name"><%= activity.name.presence || activity.activity_type&.humanize || "Activity" %></span>
+                                            <span class="day-popover-dist"><%= "%.1f km" % (activity.distance.to_f / 1000.0) %></span>
+                                        <% end %>
+                                    <% end %>
+                                </div>
+                            <% else %>
+                                <div class="day-rest">Rest</div>
+                            <% end %>
+                        </li>
+                    <% end %>
+                </ul>
+            </div>
+        <% end %>
+    </div>
 </article>
-
-
-<style>
-.calendar-week {
-    margin-block: 4rem;
-    h2, p {
-        font-weight: 400;
-        font-size: 0.8rem;
-    }
-    h2 {display: none;}
-    ul {
-        list-style: none;
-        margin:0;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        justify-items: center;
-        gap: 1rem;
-    }
-
-    li {
-        display: grid;
-        gap: 1rem;
-        justify-items: center;
-    }
-    .calendar-dayname {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        color: #808080;
-    }
-
-    .day-bubble {
-        background: var(--brand);
-        border-radius: 50vw;
-        width: 70px;
-        aspect-ratio: 1;
-        display: grid;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-    }
-    .day-rest {
-        color: #ccc;
-        font-size: 0.7rem;
-    }
-}
-</style>

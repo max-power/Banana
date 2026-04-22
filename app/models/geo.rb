@@ -2,11 +2,11 @@ class Geo
   SRID = 4326
 
   def self.factory
-#    @@factory ||= RGeo::Geographic.spherical_factory(srid: SRID)
-    @@factory ||= RGeo::Cartesian.preferred_factory(has_z_coordinate: true, srid: SRID)
+    # Cartesian factory with Z coordinate
+    @@factory ||= RGeo::Geographic.spherical_factory(srid: SRID, has_z_coordinate: true)
   end
 
-  def self.point(longitude, latitude, elevation=nil)
+  def self.point(longitude, latitude, elevation = nil)
     factory.point(longitude, latitude, elevation)
   end
 
@@ -14,11 +14,15 @@ class Geo
     factory.line_string(points)
   end
 
+  def self.multi_line_string(lines)
+    factory.multi_line_string(lines)
+  end
+
   def self.polygon(points)
     factory.polygon(line_string(points))
   end
 
   def self.to_wkt(feature)
-    "srid=#{SRID};#{feature}"
+    "SRID=#{SRID};#{feature.as_text}"
   end
 end

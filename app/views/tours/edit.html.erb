@@ -1,0 +1,73 @@
+<% content_for :title, "Edit #{@tour.name}" %>
+
+<div class="tour-form">
+  <h1>Edit Tour</h1>
+
+  <%= form_with model: @tour do |f| %>
+    <div class="field">
+      <%= f.label :name, "Tour name" %>
+      <%= f.text_field :name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :description, "Notes (optional)" %>
+      <%= f.text_area :description, rows: 3 %>
+    </div>
+    <div class="form-actions">
+      <%= f.submit "Save" %>
+      <%= link_to "Cancel", tour_path(@tour) %>
+    </div>
+  <% end %>
+
+  <section class="tour-edit-activities">
+    <h2>Activities</h2>
+    <% if @tour.activities.any? %>
+      <ul class="tour-activities-list">
+        <% @tour.activities.chronologically.each do |activity| %>
+          <li class="tour-activity-row">
+            <div class="tour-activity-info">
+              <span class="tour-activity-name"><%= activity.name.presence || "Untitled" %></span>
+              <span class="tour-activity-meta">
+                <%= activity.start_time ? l(activity.start_time, format: :short) : "—" %>
+                &middot; <%= format_distance(activity.distance) %>
+              </span>
+            </div>
+            <%= button_to "Remove", remove_activity_tour_path(@tour),
+                params: { activity_id: activity.id }, method: :patch,
+                class: "btn-remove" %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="tour-preview-hint">No activities yet.</p>
+    <% end %>
+  </section>
+
+  <section class="tour-edit-add"
+           data-controller="tour-form"
+           data-tour-form-preview-url-value="<%= preview_activities_tours_path %>">
+    <h2>Add activities</h2>
+    <%= form_with url: add_activities_tour_path(@tour), method: :patch do %>
+      <div class="field-group field-group--inline">
+        <div class="field">
+          <%= label_tag :start_date, "From" %>
+          <%= date_field_tag :start_date, nil,
+              data: { "tour-form-target": "startDate", action: "change->tour-form#refresh" } %>
+        </div>
+        <div class="field">
+          <%= label_tag :end_date, "To" %>
+          <%= date_field_tag :end_date, nil,
+              data: { "tour-form-target": "endDate", action: "change->tour-form#refresh" } %>
+        </div>
+      </div>
+      <div class="tour-preview" data-tour-form-target="preview">
+        <p class="tour-preview-hint">Select a date range to find unassigned activities</p>
+      </div>
+      <%= submit_tag "Add to tour" %>
+    <% end %>
+  </section>
+
+  <div class="danger-zone">
+    <%= button_to "Delete tour", tour_path(@tour), method: :delete,
+        data: { turbo_confirm: "Delete \"#{@tour.name}\"? The activities will remain." } %>
+  </div>
+</div>
