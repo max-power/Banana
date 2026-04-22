@@ -10,7 +10,7 @@ class PersonalRecords
 
   def initialize(user)
     @user = user
-    @scope = user.activities.where(type: nil)
+    @scope = user.activities.where(type: nil, duplicate_of_id: nil)
   end
 
   # ── Single-activity records (top 3) ─────────────────────────────────────────
