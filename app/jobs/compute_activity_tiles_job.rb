@@ -19,13 +19,13 @@ class ComputeActivityTilesJob < ApplicationJob
     [8..10, 100],
   ].freeze
 
-  def perform(activity_id, min_zoom: 0)
+  def perform(activity_id, min_zoom: 0, max_zoom: MAX_ZOOM)
     activity = Activity.where(type: nil).find_by(id: activity_id)
     return unless activity
 
-    ActivityTile.where(activity_id: activity_id, z: (min_zoom..MAX_ZOOM)).delete_all
+    ActivityTile.where(activity_id: activity_id, z: (min_zoom..max_zoom)).delete_all
 
-    (min_zoom..MAX_ZOOM).each do |z|
+    (min_zoom..max_zoom).each do |z|
       # Ask PostGIS which tiles the route actually passes through — no more
       # bounding-box rectangle that includes empty corner tiles.
       tiles = tiles_covered_by(activity_id, z)

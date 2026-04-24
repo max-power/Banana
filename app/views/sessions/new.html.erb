@@ -1,21 +1,21 @@
 <% content_for :title, "Sign in" %>
 
 <div class="auth-form">
-    <h1>Sign in</h1>
+  <h1>Sign in</h1>
 
-    <% if notice = flash[:notice] %>
-        <p class="flash flash-notice"><%= notice %></p>
-    <% end %>
-    <% if alert = flash[:alert] %>
-        <p class="flash flash-alert"><%= alert %></p>
-    <% end %>
+  <%= form_with url: session_path, method: :post do |f| %>
+    <div class="field">
+      <%= f.label :email, "Email address" %>
+      <%= f.email_field :email, required: true, autofocus: true, placeholder: "you@example.com", autocomplete: "email" %>
+    </div>
 
-    <%= form_with url: magic_links_path, method: :post do |f| %>
-        <div class="field">
-            <%= f.label :email, "Email address" %>
-            <%= f.email_field :email, required: true, autofocus: true, placeholder: "you@example.com" %>
-        </div>
+    <div class="field">
+      <%= f.label :password, "Password" %>
+      <%= f.password_field :password, required: true, placeholder: "••••••••", autocomplete: "current-password" %>
+    </div>
 
-        <%= f.submit "Send magic link" %>
-    <% end %>
+    <%= f.submit "Sign in" %>
+  <% end %>
+
+  <p class="auth-footer">Don't have an account? <%= link_to "Sign up", new_registration_path %></p>
 </div>

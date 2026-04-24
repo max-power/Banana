@@ -1,6 +1,6 @@
 module FIT
   class Parser
-    attr_reader :records, :session, :device
+    attr_reader :records, :session, :device, :utc_offset
 
     def initialize(data)
       @data        = data.b  # force binary encoding
@@ -9,6 +9,7 @@ module FIT
       @records     = []
       @session     = {}
       @device      = nil
+      @utc_offset  = nil
     end
 
     def parse
@@ -93,6 +94,7 @@ module FIT
       case defn[:global_msg]
       when 20 then handle_record(values)
       when 18 then handle_session(values)
+      when 34 then handle_activity(values)
       when  0 then handle_file_id(values)
       when 23 then handle_device_info(values)
       end
@@ -134,6 +136,13 @@ module FIT
       ts = v[253]&.+(FIT_EPOCH)
 
       @records << Track::Point.new(lat: lat, lon: lon, elevation: alt, time: ts)
+    end
+
+    # Activity message (global msg 34) — local_timestamp (field 5) lets us compute UTC offset
+    def handle_activity(v)
+      utc_ts   = v[253]
+      local_ts = v[5]
+      @utc_offset = (local_ts - utc_ts).round if utc_ts && local_ts
     end
 
     # Session message (global msg 18) — overall activity summary

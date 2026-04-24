@@ -32,6 +32,7 @@ module FIT
         average_speed_m_s: session[:avg_speed_m_s],
         max_speed_m_s:     session[:max_speed_m_s],
         device:            @parser.device,
+        utc_offset:        @parser.utc_offset,
         segments:          segments_metadata(segments),
       }
     end

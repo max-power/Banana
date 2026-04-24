@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_24_200001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "postgis"
@@ -53,6 +53,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
     t.decimal "distance", precision: 15, scale: 3
     t.uuid "duplicate_of_id"
     t.integer "elapsed_time"
+    t.boolean "elevation_corrected"
     t.integer "elevation_gain"
     t.integer "elevation_loss"
     t.datetime "end_time"
@@ -61,14 +62,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
     t.string "name"
     t.string "share_token", null: false
     t.datetime "start_time"
-    t.uuid "tour_id"
     t.geometry "track_3857", limit: {srid: 3857, type: "geometry", has_z: true}
     t.string "type"
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
+    t.integer "utc_offset"
     t.index ["duplicate_of_id"], name: "index_activities_on_duplicate_of_id"
     t.index ["share_token"], name: "index_activities_on_share_token", unique: true
-    t.index ["tour_id"], name: "index_activities_on_tour_id"
     t.index ["track_3857"], name: "idx_activities_track_3857", using: :gist
     t.index ["user_id"], name: "index_activities_on_user_id"
   end
@@ -119,9 +119,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "tour_memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "activity_id", null: false
+    t.datetime "created_at", null: false
+    t.uuid "tour_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["activity_id"], name: "index_tour_memberships_on_activity_id"
+    t.index ["tour_id", "activity_id"], name: "index_tour_memberships_on_tour_id_and_activity_id", unique: true
+    t.index ["tour_id"], name: "index_tour_memberships_on_tour_id"
+  end
+
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.string "password_digest"
     t.boolean "public_profile", default: false, null: false
     t.datetime "updated_at", null: false
     t.datetime "verified_at"
@@ -130,9 +141,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_120000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "activities", "activities", column: "tour_id"
   add_foreign_key "activities", "users"
   add_foreign_key "activity_segments", "activities"
   add_foreign_key "activity_tiles", "activities", on_delete: :cascade
   add_foreign_key "sessions", "users"
+  add_foreign_key "tour_memberships", "activities"
+  add_foreign_key "tour_memberships", "activities", column: "tour_id"
 end

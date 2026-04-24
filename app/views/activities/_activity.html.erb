@@ -8,7 +8,7 @@
   </div>
   <div class="activity-card-body">
     <p class="activity-card-meta">
-      <span class="activity-card-type"><%= local_assigns[:day_label] || activity.activity_type&.humanize || "Activity" %></span>
+      <span class="activity-card-type"><%= local_assigns[:day_label] || activity.display_type || "Activity" %></span>
       <% if activity.start_time %>
         &middot; <span class="activity-card-date"><%= l(activity.start_time, format: :short) %></span>
       <% end %>
@@ -16,14 +16,11 @@
         &middot; <span class="duplicate-badge">duplicate</span>
       <% end %>
     </p>
-    <h3 class="activity-card-name"><%= link_to activity.name.presence || "Untitled", activity_path(activity) %></h3>
+    <h3 class="activity-card-name"><%= link_to activity.name.presence || "Untitled", polymorphic_path(activity), class: "stretched-link" %></h3>
     <dl class="activity-card-stats">
       <div><dt>Distance</dt><dd><%= format_distance(activity.distance) %></dd></div>
       <div><dt>Elevation</dt><dd>↑ <%= format_elevation(activity.elevation_gain) %></dd></div>
       <div><dt>Time</dt><dd><%= format_duration(activity.moving_time) %></dd></div>
     </dl>
-  </div>
-  <div class="activity-card-actions">
-    <%= link_to "Edit", edit_activity_path(activity) %>
   </div>
 </li>

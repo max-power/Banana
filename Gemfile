@@ -27,6 +27,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
+gem "mission_control-jobs"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -81,3 +82,5 @@ gem "pagy", "~> 43.5"
 # Optional: enables static map PNG export at /activities/:id.png
 # Requires libgd to be installed (e.g. brew install libgd)
 gem "libgd-gis", require: false
+
+gem "bcrypt", "~> 3.1"

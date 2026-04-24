@@ -1,16 +1,18 @@
 namespace :heatmap do
   desc <<~DESC
-    Recompute activity_tiles. Optional args: user_email, from_zoom.
+    Recompute activity_tiles. Optional args: user_email, from_zoom, to_zoom.
       bin/rails heatmap:rebuild
       bin/rails "heatmap:rebuild[you@example.com]"
       bin/rails "heatmap:rebuild[,15]"
-      bin/rails "heatmap:rebuild[you@example.com,15]"
+      bin/rails "heatmap:rebuild[,15,16]"
+      bin/rails "heatmap:rebuild[you@example.com,15,16]"
   DESC
-  task :rebuild, [ :user_email, :from_zoom ] => :environment do |_, args|
+  task :rebuild, [ :user_email, :from_zoom, :to_zoom ] => :environment do |_, args|
     users    = args[:user_email].present? ? User.where(email: args[:user_email]) : User.all
     min_zoom = args[:from_zoom].present? ? args[:from_zoom].to_i : 0
+    max_zoom = args[:to_zoom].present?   ? args[:to_zoom].to_i   : ComputeActivityTilesJob::MAX_ZOOM
 
-    zoom_label = min_zoom > 0 ? " (zoom #{min_zoom}–#{ComputeActivityTilesJob::MAX_ZOOM})" : ""
+    zoom_label = " (zoom #{min_zoom}–#{max_zoom})"
 
     users.each do |user|
       activities = Activity.where(user: user, type: nil).order(:start_time)
@@ -29,7 +31,7 @@ namespace :heatmap do
 
         started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
-          ComputeActivityTilesJob.perform_now(activity.id, min_zoom: min_zoom)
+          ComputeActivityTilesJob.perform_now(activity.id, min_zoom: min_zoom, max_zoom: max_zoom)
           elapsed = ((Process.clock_gettime(Process::CLOCK_MONOTONIC) - started) * 1000).round
           puts "done (#{elapsed}ms)"
         rescue => e

@@ -5,13 +5,47 @@
     <div class="activity-header-main">
       <p class="activity-type"><%= @activity.activity_type&.humanize %></p>
       <h1><%= @activity.name.presence || "Untitled" %></h1>
-      <p class="activity-date"><%= @activity.start_time ? l(@activity.start_time, format: :long) : "—" %></p>
+      <% if @activity.start_time %>
+        <p class="activity-date">
+          <%= l(@activity.start_time + (@activity.utc_offset || 0), format: :long) %>
+          <% if @activity.utc_offset_string %>
+            <span class="activity-tz"><%= @activity.utc_offset_string %></span>
+          <% end %>
+        </p>
+      <% end %>
     </div>
     <nav class="activity-actions">
       <% if @is_owner %>
         <button class="share-btn" data-share-url="<%= shared_activity_url(@activity.share_token) %>"
                 onclick="navigator.clipboard.writeText(this.dataset.shareUrl).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Share', 2000) })">Share</button>
         <%= link_to "Edit", edit_activity_path(@activity) %>
+        <details class="download-dropdown">
+          <summary>Tours</summary>
+          <div class="download-menu">
+            <% if @activity_tours.any? %>
+              <p class="dropdown-section-label">In tour</p>
+              <% @activity_tours.each do |tour| %>
+                <span class="dropdown-tour-row">
+                  <%= link_to tour.name.presence || "Untitled", tour_path(tour) %>
+                  <%= button_to "✕", remove_from_tour_activity_path(@activity, tour_id: tour.id),
+                        method: :delete, class: "dropdown-remove-btn",
+                        title: "Remove from this tour",
+                        form: { data: { turbo_confirm: "Remove from \"#{tour.name.presence || 'tour'}\"?" } } %>
+                </span>
+              <% end %>
+            <% end %>
+            <% if @available_tours.any? %>
+              <p class="dropdown-section-label">Add to</p>
+              <% @available_tours.each do |tour| %>
+                <%= button_to tour.name.presence || "Untitled", add_to_tour_activity_path(@activity, tour_id: tour.id),
+                      method: :post, class: "dropdown-add-btn" %>
+              <% end %>
+            <% end %>
+            <% if @activity_tours.empty? && @available_tours.empty? %>
+              <span class="dropdown-empty">No tours yet</span>
+            <% end %>
+          </div>
+        </details>
         <details class="download-dropdown">
           <summary>↓ Download</summary>
           <div class="download-menu">
@@ -37,9 +71,9 @@
     </div>
   <% end %>
 
-  <% if @activity.tour %>
+  <% @activity.tours.each do |tour| %>
     <div class="tour-notice">
-      Part of <%= link_to @activity.tour.name.presence || "a tour", tour_path(@activity.tour) %> &rarr;
+      Part of <%= link_to tour.name.presence || "a tour", tour_path(tour) %> &rarr;
     </div>
   <% end %>
 

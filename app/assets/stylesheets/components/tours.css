@@ -1,0 +1,348 @@
+@layer components {
+  /* Tour card */
+  .tour-card {
+    display: block;
+    background: var(--info-surface);
+
+    .activity-card-type {
+      color: var(--brand);
+    }
+  }
+
+  .tour-card-details {
+    width: 100%;
+
+    &[open] .tour-card-summary {
+      border-bottom: 1px solid var(--border-1);
+    }
+  }
+
+  .tour-card-summary {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    cursor: pointer;
+    list-style: none;
+    min-height: 90px;
+
+    &:not(:has(.activity-card-map)) {
+      grid-template-columns: 1fr;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: "▶";
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.55rem;
+      color: var(--text-3);
+    }
+
+    .activity-card-body {
+      position: relative;
+    }
+  }
+
+  details[open] > .tour-card-summary::after {
+    content: "▼";
+  }
+
+  .tour-card-activities {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+
+    .activity-row {
+      display: grid;
+      grid-template-columns: 5rem 6.5rem 1fr 5.5rem 6rem 5.5rem 3rem;
+      align-items: center;
+      gap: 0;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+      border-bottom: 1px solid var(--border-1);
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      > span {
+        padding-inline-end: 0.5rem;
+      }
+      .col-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .col-type {
+        color: var(--text-2);
+      }
+      .col-date {
+        color: var(--text-3);
+      }
+      .col-duration,
+      .col-distance,
+      .col-elevation {
+        text-align: right;
+      }
+      .col-actions {
+        padding-inline-end: 0;
+        text-align: right;
+        color: var(--text-3);
+        a {
+          color: inherit;
+        }
+        a:hover {
+          color: var(--brand);
+        }
+      }
+    }
+  }
+
+  /* Tour form */
+  .tour-form {
+    max-width: 600px;
+
+    h1 {
+      margin-block-end: 1.5rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-block-end: 1rem;
+
+      input,
+      textarea,
+      select {
+        padding: 0.4rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+        border: 1px solid var(--border-2);
+        border-radius: 2px;
+        background: var(--surface-1);
+        color: var(--text-1);
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin-block-start: 1.5rem;
+
+      input[type="submit"] {
+        padding: 0.4rem 1rem;
+        background: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 2px;
+        font-family: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+    }
+
+    .field-group--inline {
+      display: flex;
+      gap: 1rem;
+
+      .field {
+        flex: 1;
+      }
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin-block: 2rem 0.75rem;
+    }
+
+    .danger-zone {
+      margin-block-start: 3rem;
+      padding-block-start: 1rem;
+      border-top: 1px solid var(--border-1);
+
+      button {
+        background: none;
+        border: 1px solid var(--error);
+        color: var(--error);
+        padding: 0.3rem 0.75rem;
+        font-family: inherit;
+        font-size: 0.8rem;
+        border-radius: 2px;
+        cursor: pointer;
+      }
+    }
+  }
+
+  /* Tour preview (date-picker search results) */
+  .tour-preview {
+    margin-block: 0.75rem 1rem;
+    min-height: 2rem;
+  }
+
+  .tour-preview-hint {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .tour-preview-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .tour-preview-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+
+    & + & {
+      border-top: 1px solid var(--surface-3);
+    }
+  }
+
+  .tour-preview-name {
+    flex: 1;
+  }
+
+  .tour-preview-meta {
+    color: var(--text-2);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .tour-preview-count {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin: 0.4rem 0 0;
+  }
+
+  /* Tour activity list (edit page) */
+  .tour-activities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .tour-activity-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+
+    & + & {
+      border-top: 1px solid var(--surface-3);
+    }
+  }
+
+  .tour-activity-info {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    overflow: hidden;
+  }
+
+  .tour-activity-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tour-activity-meta {
+    color: var(--text-2);
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .btn-remove {
+    background: none;
+    border: none;
+    color: var(--error);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    font-family: inherit;
+    flex-shrink: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .tour-edit-add {
+    input[type="submit"] {
+      padding: 0.4rem 1rem;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-block-start: 0.5rem;
+    }
+  }
+
+  /* Tour days section (show page) */
+  .tour-day + .tour-day {
+    margin-block-start: 1.5rem;
+  }
+
+  .tour-days-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-block-end: 0.75rem;
+  }
+
+  .tour-days h2 {
+    margin: 0;
+    flex: 1;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .tour-day-heading {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-2);
+    margin-block: 1.25rem 0.5rem;
+
+    &:first-child {
+      margin-block-start: 0;
+    }
+
+    .tour-day-date {
+      font-weight: normal;
+    }
+  }
+
+  .tour-days .activity-feed {
+    gap: 0.5rem;
+  }
+
+  .tour-days-list {
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+}

@@ -2,10 +2,13 @@ class ActivitiesController < ApplicationController
   before_action :authenticate!, except: [:show]
 
   def index
+    @view = params[:view].in?(%w[cards list]) ? params[:view] : (session[:activity_view] || "cards")
+    session[:activity_view] = @view
+
     scope = Current.user.activities.with_map_geojson
     scope = scope.matching(params[:q]) if params[:q].present?
-    scope = scope.where(tour_id: nil) if params[:q].blank?
-    scope = scope.where(activity_type: params[:type]) if params[:type].present?
+    scope = scope.where.missing(:tour_memberships) if params[:q].blank? && params[:type].blank?
+    scope = scope.where(type: nil).where(activity_type: params[:type]) if params[:type].present?
     if params[:year].present?
       scope = scope.where(start_time: Date.new(params[:year].to_i).beginning_of_year..Date.new(params[:year].to_i).end_of_year)
     end
@@ -27,6 +30,11 @@ class ActivitiesController < ApplicationController
         @activity = find_viewable_activity
         render plain: "Activity not found.", status: :not_found unless @activity
         @is_owner = authenticated? && @activity&.user_id == Current.user&.id
+        if @is_owner
+          all_tours = Current.user.activities.where(type: "Tour").order(:name)
+          @activity_tours     = @activity.tours.to_a
+          @available_tours    = all_tours.reject { |t| @activity_tours.map(&:id).include?(t.id) }
+        end
       end
 
       format.geojson do
@@ -60,6 +68,35 @@ class ActivitiesController < ApplicationController
   end
 
   def new
+  end
+
+  def add_to_tour
+    @activity = Current.user.activities.where(type: nil).find(params[:id])
+    tour = Current.user.activities.where(type: "Tour").find(params[:tour_id])
+    TourMembership.find_or_create_by!(tour: tour, activity: @activity)
+    tour.recalculate_stats!
+    redirect_to activity_path(@activity), notice: "Added to "#{tour.name.presence || "tour"}"."
+  end
+
+  def remove_from_tour
+    @activity = Current.user.activities.where(type: nil).find(params[:id])
+    tour = Current.user.activities.where(type: "Tour").find(params[:tour_id])
+    TourMembership.where(tour: tour, activity: @activity).delete_all
+    tour.recalculate_stats!
+    redirect_to activity_path(@activity), notice: "Removed from "#{tour.name.presence || "tour"}"."
+  end
+
+  def correct_elevation
+    @activity = Current.user.activities.where(type: nil).find(params.expect(:id))
+    CorrectElevationJob.perform_later(@activity.id)
+    redirect_to activity_path(@activity), notice: "Elevation correction started — this may take a minute."
+  end
+
+  def revert_elevation
+    @activity = Current.user.activities.where(type: nil).find(params.expect(:id))
+    @activity.update_column(:elevation_corrected, false)
+    @activity.touch  # triggers sync_metadata_from_file → re-inserts original segments
+    redirect_to activity_path(@activity), notice: "Elevation reverted to original GPS data."
   end
 
   def export_original

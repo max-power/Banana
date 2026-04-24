@@ -20,14 +20,19 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i + 5 %>
 
 development:
-  <<: *default
-  database: bike_activities_development
+  primary:
+    <<: *default
+    database: banana_development
+  queue:
+    <<: *default
+    database: banana_development_queue
+    migrations_paths: db/queue_migrate
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
   # When left blank, PostgreSQL will use the default role. This is
   # the same name as the operating system user running Rails.
-  #username: bike_activities
+  #username: banana
 
   # The password associated with the PostgreSQL role (username).
   #password:
@@ -55,7 +60,7 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: bike_activities_test
+  database: banana_test
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -86,18 +91,19 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: bike_activities_production
-    username: bike_activities
-    password: <%= ENV["BIKE_ACTIVITIES_DATABASE_PASSWORD"] %>
+    database: banana_production
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
+    username: banana
+    password: <%= ENV["DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
-    database: bike_activities_production_cache
+    database: banana_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: bike_activities_production_queue
+    database: banana_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: bike_activities_production_cable
+    database: banana_production_cable
     migrations_paths: db/cable_migrate

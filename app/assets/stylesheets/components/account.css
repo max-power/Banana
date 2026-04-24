@@ -1,0 +1,201 @@
+@layer components {
+  /* Account settings page */
+  .account-page {
+    max-width: 600px;
+
+    h1 {
+      margin-block-end: 2rem;
+    }
+  }
+
+  .account-section {
+    margin-block-end: 2.5rem;
+    padding-block-end: 2rem;
+    border-bottom: 1px solid var(--border-1);
+
+    h2 {
+      font-size: 0.85em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-block-end: 1rem;
+    }
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .toggle-hint {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin: 0.5rem 0 1rem;
+
+    strong {
+      color: inherit;
+    }
+  }
+
+  .account-email {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .account-meta {
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-2);
+  }
+
+  /* Public profile */
+  .profile-header {
+    margin-block-end: 1.5rem;
+
+    h1 {
+      margin: 0;
+      font-size: 1.2em;
+    }
+  }
+
+  /* Embed card (share page) */
+  .embed-body {
+    margin: 0;
+    background: var(--surface-1);
+    font-family: inherit;
+  }
+
+  .embed-card {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .embed-map {
+    flex: 1;
+    overflow: hidden;
+    background: var(--surface-4);
+
+    img, svg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  .embed-body-inner {
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-top: 1px solid var(--border-1);
+  }
+
+  .embed-meta {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-3);
+  }
+
+  .embed-type {
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .embed-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .embed-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0;
+
+    dt {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    dd {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+  }
+
+  .embed-cta {
+    align-self: flex-end;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--brand);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  /* Activities index header + toolbar */
+  .activities-index-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-block-end: 1rem;
+
+    h1 {
+      margin: 0;
+      flex: 1;
+    }
+  }
+
+  .activity-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block-end: 1.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface-2);
+    border-radius: var(--radius-md);
+  }
+
+  .activity-search-input,
+  .activity-toolbar-select {
+    height: 2rem;
+    padding-block: 0;
+    padding-inline: 0.65rem;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-family: inherit;
+    background: var(--surface-1);
+    color: var(--text-1);
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: var(--brand);
+    }
+  }
+
+  .activity-search-input {
+    flex: 1;
+    min-width: 0;
+    max-width: 260px;
+  }
+
+  .activity-toolbar-select {
+    cursor: pointer;
+  }
+
+  /* .view-toggle and .view-toggle-btn are defined in components/activity-card.css */
+}

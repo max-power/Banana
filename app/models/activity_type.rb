@@ -17,4 +17,8 @@ module ActivityType
   def self.for_select
     GROUPED.map { |group, types| [group, types.map { |t| [t.humanize, t] }] }
   end
+
+  def self.for_flat_select
+    ALL.map { |t| [t.humanize, t] }
+  end
 end

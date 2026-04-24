@@ -1,0 +1,153 @@
+@layer utilities {
+  .number {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat {
+    display: grid;
+
+    dt {
+      color: var(--text-2);
+      font-size: 0.75em;
+      text-transform: uppercase;
+      order: 2;
+    }
+    dd {
+      font-size: 2em;
+      font-weight: 700;
+      margin: 0;
+      order: 1;
+    }
+  }
+
+  .empty-state {
+    color: var(--text-2);
+    font-size: 0.85em;
+  }
+
+  /* Flash messages */
+  .flash {
+    font-size: 0.9em;
+  }
+
+  .flash-notice {
+    color: var(--success);
+  }
+
+  .flash-alert {
+    color: var(--error);
+  }
+
+  /* Pagy pagination */
+  .pagy.series-nav {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding-block: 1rem;
+    font-size: 0.8rem;
+
+    a {
+      padding: 0.3rem 0.6rem;
+      border-radius: 2px;
+      text-decoration: none;
+    }
+
+    a:not([aria-disabled]):hover {
+      background: var(--surface-3);
+    }
+    a[aria-current="page"] {
+      background: var(--brand);
+      color: white;
+    }
+    a[role="separator"] {
+      color: var(--text-3);
+    }
+  }
+
+  /* Button primitives */
+  .btn-primary {
+    padding: 0.4rem 1rem;
+    background: var(--brand);
+    color: white;
+    border: none;
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    font-size: 0.8em;
+    color: var(--text-2);
+
+    &:hover {
+      color: var(--brand);
+    }
+  }
+
+  .btn-action {
+    font-size: 0.8em;
+    color: var(--text-2);
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--brand);
+    }
+  }
+
+  /* Duplicate activity warning */
+  .duplicate-warning {
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    margin-block-end: 1rem;
+    font-size: 0.875rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .duplicate-badge {
+    background: var(--warning-border);
+    color: var(--warning-text);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Amber / info notice */
+  .notice {
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    margin-block-end: 1rem;
+    font-size: 0.875rem;
+    background: var(--warning-surface);
+    border: 1px solid var(--warning-border);
+    color: var(--warning-text);
+  }
+
+  /* Sign-out nav button */
+  .sign-out {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--brand);
+    cursor: pointer;
+    text-decoration-thickness: 0;
+    text-underline-offset: 2px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
