@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  #mount MissionControl::Jobs::Engine, at: "/jobs"
+
   resource :session, only: [ :new, :destroy ]
   post "magic_links", to: "magic_links#create", as: :magic_links
   get  "magic_links/verify", to: "magic_links#verify", as: :verify_magic_link
@@ -35,7 +37,7 @@ Rails.application.routes.draw do
 
   resource :records, only: [ :show ]
   resource :account, only: [ :show, :update ]
-  resource :upload, only: [ :show, :create ]
+  resource :upload, only: [ :show ]
 
   get "/athlete/:id", to: "public_profiles#show", as: :public_profile
   get "/s/:token(.:format)", to: "shares#show",  as: :shared_activity
