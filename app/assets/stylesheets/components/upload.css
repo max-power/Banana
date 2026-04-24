@@ -1,0 +1,97 @@
+@layer components {
+  .upload-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .drop-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 3rem 2rem;
+    border: 2px dashed var(--border-2);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    transition:
+      border-color 150ms,
+      background 150ms;
+
+    &.drop-zone--over {
+      border-color: var(--brand);
+      background: var(--brand-a10);
+    }
+  }
+
+  .drop-zone-label {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .drop-zone-or {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--text-2);
+  }
+
+  .drop-zone-browse {
+    padding: 0.4rem 1rem;
+    background: var(--brand);
+    color: white;
+    border-radius: 2px;
+    font-size: 0.8rem;
+    cursor: pointer;
+
+    input[type="file"] {
+      display: none;
+    }
+  }
+
+  .drop-error {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin: 0.5rem 0 0;
+  }
+
+  .upload-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .upload-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border-1);
+    font-size: 0.8rem;
+  }
+
+  .upload-progress {
+    width: 80px;
+    accent-color: var(--brand);
+  }
+
+  .upload-status {
+    min-width: 6rem;
+    text-align: right;
+    color: var(--text-2);
+
+    &[data-state="done"] {
+      color: var(--success);
+    }
+    &[data-state="error"] {
+      color: var(--error);
+    }
+
+    a {
+      color: inherit;
+    }
+  }
+}

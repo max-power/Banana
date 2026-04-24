@@ -1,0 +1,60 @@
+@layer tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* Brand — violet-blue, perceptually consistent with hsl(254 100% 48%) */
+    --brand-l: 48%;
+    --brand-c: 0.26;
+    --brand-h: 264;
+    --brand: oklch(var(--brand-l) var(--brand-c) var(--brand-h));
+    --brand-a10: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.10);
+    --brand-a15: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.15);
+
+    /* Surfaces */
+    --surface-1: light-dark(oklch(100% 0 0), oklch(18% 0.012 264));
+    --surface-2: light-dark(oklch(97% 0.003 264), oklch(22% 0.015 264));
+    --surface-3: light-dark(oklch(94% 0.005 264), oklch(27% 0.015 264));
+    --surface-4: light-dark(oklch(91% 0.006 264), oklch(31% 0.016 264));
+
+    /* Text */
+    --text-1: light-dark(oklch(15% 0.015 264), oklch(94% 0.005 264));
+    --text-2: light-dark(oklch(40% 0.01 264), oklch(70% 0.008 264));
+    --text-3: light-dark(oklch(62% 0.008 264), oklch(52% 0.008 264));
+
+    /* Borders */
+    --border-1: light-dark(oklch(90% 0.006 264), oklch(32% 0.012 264));
+    --border-2: light-dark(oklch(84% 0.008 264), oklch(38% 0.014 264));
+
+    /* Semantic */
+    --success: light-dark(oklch(42% 0.17 145), oklch(65% 0.18 145));
+    --warning: light-dark(oklch(52% 0.15 85), oklch(75% 0.16 85));
+    --error:   light-dark(oklch(48% 0.20 25),  oklch(68% 0.20 25));
+
+    /* Warning surface (amber notice) */
+    --warning-surface: light-dark(oklch(97% 0.05 90), oklch(28% 0.06 80));
+    --warning-border:  light-dark(oklch(80% 0.14 88), oklch(52% 0.14 80));
+    --warning-text:    light-dark(oklch(48% 0.13 72), oklch(80% 0.12 85));
+
+    /* Info surface (blue notice) */
+    --info-surface: light-dark(oklch(96% 0.02 264), oklch(24% 0.025 264));
+    --info-border:  light-dark(oklch(80% 0.07 264), oklch(42% 0.08 264));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.10);
+    --shadow-md: 0 2px 12px oklch(0% 0 0 / 0.12);
+    --shadow-lg: 0 4px 24px oklch(0% 0 0 / 0.16);
+
+    /* Radii */
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 10px;
+
+    /* Spacing scale */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+  }
+}

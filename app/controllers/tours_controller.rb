@@ -7,6 +7,9 @@ class ToursController < ApplicationController
   end
 
   def show
+    @view = params[:view].in?(%w[cards list]) ? params[:view] : (session[:activity_view] || "cards")
+    session[:activity_view] = @view
+
     respond_to do |format|
       format.html
 
@@ -67,7 +70,7 @@ class ToursController < ApplicationController
   end
 
   def destroy
-    @tour.activities.update_all(tour_id: nil)
+    @tour.tour_memberships.delete_all
     if @tour.destroy
       redirect_to activities_path, notice: "Tour deleted."
     else
@@ -81,7 +84,7 @@ class ToursController < ApplicationController
   end
 
   def remove_activity
-    @tour.activities.where(id: params[:activity_id]).update_all(tour_id: nil)
+    @tour.tour_memberships.where(activity_id: params[:activity_id]).delete_all
     @tour.recalculate_stats!
     redirect_to edit_tour_path(@tour)
   end
@@ -108,13 +111,18 @@ class ToursController < ApplicationController
     return Activity.none unless start_date && end_date
 
     Current.user.activities
-      .where(type: nil, tour_id: nil)
+      .where(type: nil)
       .where(start_time: start_date.beginning_of_day..end_date.end_of_day)
       .chronologically
   end
 
   def assign_range_activities(tour, start_date, end_date)
     activities = activities_in_range(start_date, end_date)
-    activities.update_all(tour_id: tour.id) if activities.any?
+    return if activities.empty?
+
+    rows = activities.pluck(:id).map do |activity_id|
+      { tour_id: tour.id, activity_id: activity_id, created_at: Time.current, updated_at: Time.current }
+    end
+    TourMembership.insert_all(rows, unique_by: [:tour_id, :activity_id])
   end
 end

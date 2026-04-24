@@ -1,0 +1,41 @@
+@layer layout {
+  #app-header,
+  #app-main {
+    max-inline-size: 960px;
+    margin-inline: auto;
+    padding: 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  #app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    nav ul {
+      display: flex;
+      gap: 1rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
+  .color-scheme-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 0;
+    padding: 0.2rem 0.25rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-3);
+    transition: background 150ms ease, color 150ms ease;
+    vertical-align: middle;
+
+    &:hover {
+      background: var(--surface-4);
+      color: var(--text-1);
+    }
+  }
+}

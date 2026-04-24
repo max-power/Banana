@@ -1,0 +1,235 @@
+@layer components {
+  /* Activity list container */
+  .activities-index {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .month-group {
+  }
+
+  .month-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-block-end: 0.75rem;
+    border-bottom: 1px solid currentColor;
+    padding-block-end: 0.25rem;
+
+    h2 {
+      font-size: 0.85em;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .month-summary {
+      font-size: 0.75em;
+      color: var(--text-2);
+    }
+  }
+
+  .activity-feed {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Activity row — always needs a positioning context for stretched-link */
+  .activity-row {
+    position: relative;
+  }
+
+  /* Compact list view */
+  .activity-feed--compact {
+    gap: 0;
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+
+    .activity-row {
+      display: grid;
+      grid-template-columns: 5.5rem 6.5rem 1fr 5rem 6rem 5.5rem;
+      align-items: center;
+      gap: 0;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.82rem;
+      border-bottom: 1px solid var(--border-1);
+
+      &:last-child {
+        border-bottom: none;
+      }
+      &:hover {
+        background: var(--surface-2);
+      }
+
+      > span {
+        padding-inline-end: 0.5rem;
+      }
+      .col-type {
+        color: var(--brand);
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .col-date {
+        color: var(--text-3);
+      }
+      .col-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 500;
+
+        a {
+          color: inherit;
+          text-decoration: none;
+        }
+        a:hover {
+          color: var(--brand);
+        }
+      }
+      .col-duration,
+      .col-distance,
+      .col-elevation {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      &:hover {
+        cursor: pointer;
+      }
+    }
+  }
+
+  /* View toggle buttons */
+  .view-toggle {
+    display: flex;
+    gap: 2px;
+    margin-inline-start: auto;
+  }
+
+  .view-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-3);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--text-2);
+      background: var(--surface-4);
+    }
+    &.active {
+      color: var(--brand);
+      background: var(--surface-4);
+    }
+  }
+
+  /* Activity card */
+  .activity-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    min-height: 90px;
+
+    &:not(:has(.activity-card-map)) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .activity-card-map {
+    background: var(--surface-4);
+    color: var(--brand);
+    display: flex;
+    align-items: stretch;
+
+    svg, img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+  }
+
+  .activity-card-body {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+  }
+
+  .activity-card-meta {
+    margin: 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-2);
+    letter-spacing: 0.02em;
+  }
+
+  .activity-card-type {
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .activity-card-name {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      color: var(--brand);
+    }
+  }
+
+  .activity-card-stats {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    font-size: 0.8rem;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+    }
+    dt {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: var(--text-3);
+      order: 2;
+    }
+    dd {
+      margin: 0;
+      font-variant-numeric: tabular-nums;
+      order: 1;
+    }
+  }
+
+  /* Stretched link — covers the nearest position:relative ancestor */
+  .stretched-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+}

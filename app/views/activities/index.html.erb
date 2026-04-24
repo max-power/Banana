@@ -29,15 +29,40 @@
         ], params[:sort] || "date_desc"),
         class: "activity-toolbar-select",
         onchange: "this.form.requestSubmit()" %>
+  <%= f.hidden_field :view, value: @view %>
+  <div class="view-toggle">
+    <%= link_to activities_path(request.query_parameters.merge("view" => "cards")),
+          class: "view-toggle-btn #{"active" if @view == "cards"}",
+          title: "Card view" do %>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
+        <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
+      </svg>
+    <% end %>
+    <%= link_to activities_path(request.query_parameters.merge("view" => "list")),
+          class: "view-toggle-btn #{"active" if @view == "list"}",
+          title: "List view" do %>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="1" y="2" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/>
+        <rect x="1" y="12" width="14" height="2" rx="1"/>
+      </svg>
+    <% end %>
+  </div>
 <% end %>
 
 <div class="activities-index">
   <% if @activities.empty? %>
     <p class="empty-state">No activities yet. <%= link_to "Upload a GPX file", upload_path %> to get started.</p>
   <% else %>
-    <ul class="activity-feed">
-      <%= render @activities %>
-    </ul>
+    <% if @view == "list" %>
+      <ul class="activity-feed activity-feed--compact">
+        <%= render partial: "activities/activity_row", collection: @activities, as: :activity %>
+      </ul>
+    <% else %>
+      <ul class="activity-feed">
+        <%= render @activities %>
+      </ul>
+    <% end %>
   <% end %>
 
   <%= raw @pagy.series_nav if @pagy.pages > 1 %>

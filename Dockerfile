@@ -1,22 +1,21 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t bike_activities .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name bike_activities bike_activities
-
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
-
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
-ARG RUBY_VERSION=4.0.0
+ARG RUBY_VERSION=4.0.1
 FROM docker.io/library/ruby:$RUBY_VERSION-slim AS base
 
 # Rails app lives here
 WORKDIR /rails
 
 # Install base packages
+# libgeos-dev + libgdal-dev: runtime .so files for rgeo / postgis adapter
+# (using -dev packages avoids pinning a version-specific lib name like libgdal34)
+# libgd3: runtime lib for static map PNG generation
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 libvips postgresql-client && \
+    apt-get install --no-install-recommends -y \
+      curl libjemalloc2 libvips postgresql-client \
+      libgeos-dev libgdal-dev libgd3 && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
@@ -31,12 +30,15 @@ ENV RAILS_ENV="production" \
 FROM base AS build
 
 # Install packages needed to build gems
+# libgeos-dev + libgdal-dev needed to compile rgeo native extensions
+# libgd-dev needed to compile libgd-gis
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libpq-dev libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y \
+      build-essential git libpq-dev libyaml-dev pkg-config \
+      libgeos-dev libgdal-dev libgd-dev && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
-COPY vendor/* ./vendor/
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \

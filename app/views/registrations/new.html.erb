@@ -1,0 +1,34 @@
+<% content_for :title, "Sign up" %>
+
+<div class="auth-form">
+  <h1>Create account</h1>
+
+  <%= form_with model: @user, url: registration_path do |f| %>
+    <% if @user.errors.any? %>
+      <div class="auth-errors">
+        <% @user.errors.full_messages.each do |msg| %>
+          <p><%= msg %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="field">
+      <%= f.label :email, "Email address" %>
+      <%= f.email_field :email, required: true, autofocus: true, placeholder: "you@example.com", autocomplete: "email" %>
+    </div>
+
+    <div class="field">
+      <%= f.label :password, "Password" %>
+      <%= f.password_field :password, required: true, placeholder: "Min. 8 characters", autocomplete: "new-password" %>
+    </div>
+
+    <div class="field">
+      <%= f.label :password_confirmation, "Confirm password" %>
+      <%= f.password_field :password_confirmation, required: true, placeholder: "••••••••", autocomplete: "new-password" %>
+    </div>
+
+    <%= f.submit "Create account" %>
+  <% end %>
+
+  <p class="auth-footer">Already have an account? <%= link_to "Sign in", new_session_path %></p>
+</div>

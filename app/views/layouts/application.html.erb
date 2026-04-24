@@ -9,6 +9,14 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <%# Apply saved color-scheme before first paint to avoid flash %>
+    <script>
+      (function() {
+        var s = localStorage.getItem("color-scheme");
+        if (s && s !== "auto") document.documentElement.style.colorScheme = s;
+      })();
+    </script>
+
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
@@ -40,9 +48,14 @@
           <ul>
             <li><%= link_to "Account", account_path %></li>
             <li><%= button_to "Sign out", session_path, method: :delete, class: "sign-out" %></li>
+            <li>
+              <button class="color-scheme-btn"
+                      data-controller="color-scheme"
+                      data-action="click->color-scheme#toggle"></button>
+            </li>
           </ul>
         </nav>
-        <% end %>
+      <% end %>
     </header>
 
     <main id="app-main">

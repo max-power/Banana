@@ -41,6 +41,12 @@ module GPX
       cleaner.counter
     end
 
+    def utc_offset
+      return @utc_offset if defined?(@utc_offset)
+      first = parsed_document.at_xpath("//trkpt/time")&.text
+      @utc_offset = first ? (Time.iso8601(first).utc_offset rescue nil) : nil
+    end
+
     private
 
     def cleaner

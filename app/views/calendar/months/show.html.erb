@@ -32,7 +32,7 @@
     </header>
 
     <% max_dist = max_day_distance(@activities) %>
-    <% activities_by_date = @activities.group_by { |a| a.start_time&.to_date } %>
+    <% activities_by_date = @activities.group_by(&:local_date) %>
 
     <%# Color legend for types present this month %>
     <% present_types = @activities.map(&:activity_type).compact.uniq %>

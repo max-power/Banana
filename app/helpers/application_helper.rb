@@ -104,7 +104,8 @@ module ApplicationHelper
   end
 
   def activity_map_png(activity)
-    image_tag polymorphic_path(activity, format: :png), loading: "lazy", alt: ""
+    image_tag polymorphic_path(activity, format: :png), loading: "lazy", alt: "",
+              width: StaticMapService::WIDTH, height: StaticMapService::HEIGHT
   end
 
   def activity_map_svg(activity)

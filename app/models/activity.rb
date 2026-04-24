@@ -1,7 +1,8 @@
 class Activity < ApplicationRecord
   belongs_to :user
   belongs_to :duplicate_of, class_name: "Activity", optional: true
-  belongs_to :tour, optional: true
+  has_many :tour_memberships, foreign_key: :activity_id, dependent: :destroy
+  has_many :tours, through: :tour_memberships
   has_one_attached :file #, service: :local, analyzable: true
   has_many :segments, class_name: "ActivitySegment", dependent: :destroy
   has_many :tiles,    class_name: "ActivityTile",    dependent: :destroy
@@ -11,6 +12,25 @@ class Activity < ApplicationRecord
   scope :reverse_chronologically, -> { order(start_time: :desc, id: :desc) }
   scope :within_time_range, ->(range) { where(start_time: (range.begin..range.end)) }
   scope :matching, ->(q) { where("name ILIKE ?", "%#{sanitize_sql_like(q)}%") }
+
+  def display_type
+    activity_type&.humanize
+  end
+
+  # Returns the calendar date in the activity's local timezone (or UTC if unknown)
+  def local_date
+    return start_time&.to_date unless utc_offset && start_time
+    (start_time + utc_offset).to_date
+  end
+
+  # Formats the UTC offset as +HH:MM / -HH:MM
+  def utc_offset_string
+    return nil unless utc_offset
+    sign    = utc_offset < 0 ? "-" : "+"
+    hours   = utc_offset.abs / 3600
+    minutes = (utc_offset.abs % 3600) / 60
+    format("%s%02d:%02d", sign, hours, minutes)
+  end
 
   after_touch :sync_metadata_from_file
 
@@ -86,6 +106,15 @@ class Activity < ApplicationRecord
 
     meta = file.blob.metadata
 
+    # utc_offset may be absent if the blob was analyzed before this field was added.
+    # Re-run the appropriate analyzer on the fly to fill it in.
+    if !meta.key?(:utc_offset) && !meta.key?("utc_offset")
+      blob = file.blob
+      klass = [ GpxAnalyzer, FitAnalyzer ].find { |a| a.accept?(blob) }
+      fresh = klass&.new(blob)&.metadata rescue {}
+      meta = meta.merge(utc_offset: fresh[:utc_offset]) if fresh.key?(:utc_offset)
+    end
+
     update_columns(
       name:           meta[:activity_name],
       activity_type:  meta[:activity_type],
@@ -99,6 +128,7 @@ class Activity < ApplicationRecord
       average_speed:  meta[:average_speed_m_s],
       max_speed:      meta[:max_speed_m_s],
       device:         meta[:device],
+      utc_offset:     meta[:utc_offset],
     )
 
     insert_segments(meta[:segments])

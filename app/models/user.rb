@@ -2,5 +2,9 @@ class User < ApplicationRecord
   has_many :activities, dependent: :destroy
   has_many :sessions, dependent: :destroy
 
-  generates_token_for :magic_link, expires_in: 15.minutes
+  has_secure_password
+
+  normalizes :email, with: -> e { e.strip.downcase }
+  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 end

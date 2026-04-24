@@ -1,9 +1,8 @@
 Rails.application.routes.draw do
-  #mount MissionControl::Jobs::Engine, at: "/jobs"
+  mount MissionControl::Jobs::Engine, at: "/jobs"
 
-  resource :session, only: [ :new, :destroy ]
-  post "magic_links", to: "magic_links#create", as: :magic_links
-  get  "magic_links/verify", to: "magic_links#verify", as: :verify_magic_link
+  resource :session, only: [ :new, :create, :destroy ]
+  resource :registration, only: [ :new, :create ]
 
   resources :tours do
     collection do
@@ -16,12 +15,15 @@ Rails.application.routes.draw do
   end
   resources :activities do
     member do
-      get :truncate
-      get :split
-      get :export_gpx
-      get :export_original
-      get :export_geojson
-      #      get :swap_elevation_stream # (device_elevation, calculated_elevation)
+      get  :truncate
+      get  :split
+      get  :export_gpx
+      get  :export_original
+      get  :export_geojson
+      post :correct_elevation
+      post :revert_elevation
+      post   :add_to_tour
+      delete :remove_from_tour
     end
   end
 

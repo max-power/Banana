@@ -28,6 +28,7 @@ module GPX
         elevation_min_m:  elevation.min,
         elevation_max_m:  elevation.max,
 
+        utc_offset: parser.utc_offset,
         segments: segments_metadata,
         cleanup:  parser.clean_report.to_h
       }

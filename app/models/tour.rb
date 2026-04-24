@@ -1,5 +1,10 @@
 class Tour < Activity
-  has_many :activities, -> { where(type: nil).order(:start_time) }, foreign_key: :tour_id, dependent: :nullify
+  has_many :tour_memberships, foreign_key: :tour_id, dependent: :destroy
+  has_many :activities, -> { where(type: nil).order(:start_time) }, through: :tour_memberships
+
+  def display_type
+    activity_type&.humanize || "Tour"
+  end
 
   def days
     return 0 unless start_time && end_time
@@ -9,15 +14,16 @@ class Tour < Activity
   def recalculate_stats!
     row = self.class.connection.exec_query(<<~SQL, "tour_stats", [ id ]).first
       SELECT
-        COALESCE(SUM(distance), 0)       AS distance,
-        COALESCE(SUM(elevation_gain), 0) AS elevation_gain,
-        COALESCE(SUM(elevation_loss), 0) AS elevation_loss,
-        COALESCE(SUM(moving_time), 0)    AS moving_time,
-        COALESCE(SUM(elapsed_time), 0)   AS elapsed_time,
-        MIN(start_time)                  AS start_time,
-        MAX(end_time)                    AS end_time
-      FROM activities
-      WHERE tour_id = $1 AND (type IS NULL OR type = '')
+        COALESCE(SUM(a.distance), 0)       AS distance,
+        COALESCE(SUM(a.elevation_gain), 0) AS elevation_gain,
+        COALESCE(SUM(a.elevation_loss), 0) AS elevation_loss,
+        COALESCE(SUM(a.moving_time), 0)    AS moving_time,
+        COALESCE(SUM(a.elapsed_time), 0)   AS elapsed_time,
+        MIN(a.start_time)                  AS start_time,
+        MAX(a.end_time)                    AS end_time
+      FROM activities a
+      INNER JOIN tour_memberships tm ON tm.activity_id = a.id
+      WHERE tm.tour_id = $1 AND (a.type IS NULL OR a.type = '')
     SQL
     update_columns(
       distance:       row["distance"].to_f,
@@ -42,7 +48,8 @@ class Tour < Activity
       ) AS geojson
       FROM activity_segments s
       INNER JOIN activities a ON a.id = s.activity_id
-      WHERE a.tour_id = $1
+      INNER JOIN tour_memberships tm ON tm.activity_id = a.id
+      WHERE tm.tour_id = $1
     SQL
   end
 

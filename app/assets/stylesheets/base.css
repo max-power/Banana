@@ -1,0 +1,73 @@
+@layer base {
+  nav ul,
+  nav li,
+  figure,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scrollbar-color: var(--brand) Canvas;
+  }
+
+  :focus-visible {
+    outline-color: var(--brand);
+  }
+
+  ::selection {
+    background-color: var(--brand);
+    color: var(--surface-1);
+  }
+
+  ::marker {
+    color: var(--brand);
+  }
+
+  :is(
+    ::-webkit-calendar-picker-indicator,
+    ::-webkit-clear-button,
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button
+  ) {
+    color: var(--brand);
+  }
+
+  input,
+  textarea {
+    caret-color: var(--brand);
+  }
+
+  figure > img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  body {
+    font-family:
+      ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+      "DejaVu Sans Mono", monospace;
+    font-weight: normal;
+    color: var(--text-1);
+    background: var(--surface-1);
+    margin: 0;
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  a {
+    color: var(--brand);
+    text-decoration-thickness: 0;
+    text-underline-offset: 2px;
+    transition: all 200ms ease;
+  }
+
+  a:hover,
+  a:focus-visible {
+    text-decoration-thickness: 2px;
+  }
+
+  accent-color: var(--brand);
+}
