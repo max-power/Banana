@@ -5,8 +5,19 @@ const STYLES = ["bright", "liberty", "positron", "dark", "fiord"];
 const STYLE_URL = (s) => `https://tiles.openfreemap.org/styles/${s}`;
 
 export default class extends Controller {
-  static targets = ["map", "elevation", "playButton", "speedButton", "styleOption", "timeline", "timelineTrack", "timelineFill", "timelineThumb", "timelineLabel"];
-  static values  = { url: String, arrowUrl: String };
+  static targets = [
+    "map",
+    "elevation",
+    "playButton",
+    "speedButton",
+    "styleOption",
+    "timeline",
+    "timelineTrack",
+    "timelineFill",
+    "timelineThumb",
+    "timelineLabel",
+  ];
+  static values = { url: String, arrowUrl: String };
 
   connect() {
     this.speedMultiplier = 1;
@@ -20,14 +31,23 @@ export default class extends Controller {
       zoom: 1,
     });
 
-    this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+    this.map.addControl(
+      new maplibregl.NavigationControl({ visualizePitch: true }),
+      "top-right",
+    );
     this.map.addControl(this.tiltControl(), "top-right");
-    this.map.addControl(new maplibregl.FullscreenControl({ container: this.element }), "top-right");
+    this.map.addControl(
+      new maplibregl.FullscreenControl({ container: this.element }),
+      "top-right",
+    );
     this.setActiveStyle(savedStyle);
 
-    document.addEventListener("fullscreenchange", this._onFullscreenChange = () => {
-      this.map.resize();
-    });
+    document.addEventListener(
+      "fullscreenchange",
+      (this._onFullscreenChange = () => {
+        this.map.resize();
+      }),
+    );
 
     this.map.on("load", () => {
       this.loadRoute();
@@ -76,7 +96,10 @@ export default class extends Controller {
 
   setActiveStyle(style) {
     this.styleOptionTargets.forEach((btn) =>
-      btn.classList.toggle("active", btn.dataset.activityMapStyleParam === style)
+      btn.classList.toggle(
+        "active",
+        btn.dataset.activityMapStyleParam === style,
+      ),
     );
   }
 
@@ -88,9 +111,9 @@ export default class extends Controller {
     const geometry = this.routeFeature?.geometry;
     if (!geometry) return;
 
-    this.animCoords   = this.flattenCoords(geometry);
+    this.animCoords = this.flattenCoords(geometry);
     this.animProgress = 0;
-    this.playing      = false;
+    this.playing = false;
 
     // Pre-calculate cumulative distances so animation speed is constant in
     // geographic terms rather than per-coordinate (which distorts at slow/
@@ -98,7 +121,8 @@ export default class extends Controller {
     this.animDistances = [0];
     for (let i = 1; i < this.animCoords.length; i++) {
       this.animDistances.push(
-        this.animDistances[i - 1] + this.haversine(this.animCoords[i - 1], this.animCoords[i])
+        this.animDistances[i - 1] +
+          this.haversine(this.animCoords[i - 1], this.animCoords[i]),
       );
     }
     this.animTotalDist = this.animDistances.at(-1) || 1;
@@ -126,9 +150,11 @@ export default class extends Controller {
 
     this.map.addSource("route", { type: "geojson", data: geometry });
     this.map.addLayer({
-      id: "route", type: "line", source: "route",
+      id: "route",
+      type: "line",
+      source: "route",
       layout: { "line-join": "round", "line-cap": "round" },
-      paint:  { "line-color": "#f35", "line-width": 3 },
+      paint: { "line-color": "#f35", "line-width": 3 },
     });
 
     this.map.addSource("route-progress", {
@@ -136,9 +162,11 @@ export default class extends Controller {
       data: { type: "LineString", coordinates: [] },
     });
     this.map.addLayer({
-      id: "route-progress", type: "line", source: "route-progress",
+      id: "route-progress",
+      type: "line",
+      source: "route-progress",
       layout: { "line-join": "round", "line-cap": "round" },
-      paint:  { "line-color": "#f35", "line-width": 5 },
+      paint: { "line-color": "#f35", "line-width": 5 },
     });
 
     this.addRouteLayerArrows();
@@ -149,7 +177,7 @@ export default class extends Controller {
   }
 
   flattenCoords(geometry) {
-    if (geometry.type === "LineString")      return geometry.coordinates;
+    if (geometry.type === "LineString") return geometry.coordinates;
     if (geometry.type === "MultiLineString") return geometry.coordinates.flat();
     return [];
   }
@@ -157,13 +185,20 @@ export default class extends Controller {
   fitBoundsToGeometry(geometry) {
     const bounds = new maplibregl.LngLatBounds();
     const extend = (c) => bounds.extend(c);
-    if (geometry.type === "LineString")           geometry.coordinates.forEach(extend);
-    else if (geometry.type === "MultiLineString") geometry.coordinates.forEach((l) => l.forEach(extend));
+    if (geometry.type === "LineString") geometry.coordinates.forEach(extend);
+    else if (geometry.type === "MultiLineString")
+      geometry.coordinates.forEach((l) => l.forEach(extend));
     if (bounds.isEmpty()) return;
 
     this.map.resize(); // ensure container dimensions are current
     const camera = this.map.cameraForBounds(bounds, { padding: 60 });
-    if (camera) this.map.jumpTo({ center: camera.center, zoom: camera.zoom, pitch: 0, bearing: 0 });
+    if (camera)
+      this.map.jumpTo({
+        center: camera.center,
+        zoom: camera.zoom,
+        pitch: 0,
+        bearing: 0,
+      });
   }
 
   addStartEndMarkers({ start, end, waypoints } = {}) {
@@ -171,11 +206,11 @@ export default class extends Controller {
       waypoints.forEach(({ start, end }, i) => {
         const n = i + 1;
         if (start) this.createWaypointMarker(start, n, "start");
-        if (end)   this.createWaypointMarker(end,   n, "end");
+        if (end) this.createWaypointMarker(end, n, "end");
       });
     } else {
       if (start) this.createMarker(start, "icon-activity-start");
-      if (end)   this.createMarker(end,   "icon-activity-end");
+      if (end) this.createMarker(end, "icon-activity-end");
     }
   }
 
@@ -196,13 +231,19 @@ export default class extends Controller {
     const img = new Image(32, 32);
     img.src = this.arrowUrlValue;
     img.onload = () => {
-      if (this.map.hasImage("direction-arrow")) this.map.removeImage("direction-arrow");
+      if (this.map.hasImage("direction-arrow"))
+        this.map.removeImage("direction-arrow");
       this.map.addImage("direction-arrow", img, { sdf: true });
       this.map.addLayer({
-        id: "route-layer-arrows", type: "symbol", source: "route",
+        id: "route-layer-arrows",
+        type: "symbol",
+        source: "route",
         layout: {
-          "symbol-placement": "line", "symbol-spacing": 20,
-          "icon-allow-overlap": true, "icon-image": "direction-arrow", "icon-size": 0.2,
+          "symbol-placement": "line",
+          "symbol-spacing": 20,
+          "icon-allow-overlap": true,
+          "icon-image": "direction-arrow",
+          "icon-size": 0.2,
         },
         paint: { "icon-color": "#ffffff" },
         minzoom: 6,
@@ -232,14 +273,18 @@ export default class extends Controller {
   pause() {
     this.playing = false;
     this.playButtonTarget.textContent = "▶";
-    if (this.animFrameId) { cancelAnimationFrame(this.animFrameId); this.animFrameId = null; }
+    if (this.animFrameId) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
   }
 
   cycleSpeed() {
     const steps = [1, 2, 3, 5, 10];
-    const next  = steps[(steps.indexOf(this.speedMultiplier) + 1) % steps.length];
+    const next =
+      steps[(steps.indexOf(this.speedMultiplier) + 1) % steps.length];
     this.speedMultiplier = next;
-    this.animStartTime   = null; // recalculate from current progress at new speed
+    this.animStartTime = null; // recalculate from current progress at new speed
     if (this.hasSpeedButtonTarget)
       this.speedButtonTarget.textContent = `${next}×`;
   }
@@ -249,7 +294,10 @@ export default class extends Controller {
     if (!this.animStartTime)
       this.animStartTime = timestamp - this.animProgress * effectiveDuration;
 
-    const progress = Math.min(1, (timestamp - this.animStartTime) / effectiveDuration);
+    const progress = Math.min(
+      1,
+      (timestamp - this.animStartTime) / effectiveDuration,
+    );
     this.animProgress = progress;
     this.showRouteProgress(progress);
 
@@ -266,15 +314,19 @@ export default class extends Controller {
     // Binary search: find the coordinate index at the target distance
     const targetDist = progress * this.animTotalDist;
     const dists = this.animDistances;
-    let lo = 0, hi = dists.length - 1;
+    let lo = 0,
+      hi = dists.length - 1;
     while (lo < hi) {
       const mid = (lo + hi + 1) >> 1;
-      if (dists[mid] <= targetDist) lo = mid; else hi = mid - 1;
+      if (dists[mid] <= targetDist) lo = mid;
+      else hi = mid - 1;
     }
     const sliced = this.animCoords.slice(0, lo + 1);
     if (sliced.length < 2) return;
 
-    this.map.getSource("route-progress").setData({ type: "LineString", coordinates: sliced });
+    this.map
+      .getSource("route-progress")
+      .setData({ type: "LineString", coordinates: sliced });
     this.map.getSource("hover-point").setData({
       type: "Feature",
       geometry: { type: "Point", coordinates: sliced[sliced.length - 1] },
@@ -289,8 +341,7 @@ export default class extends Controller {
     this.timelineFillTarget.style.width = pct;
     this.timelineThumbTarget.style.left = pct;
     if (this.totalDist) {
-      this.timelineLabelTarget.textContent =
-        `${this.fmtDist(progress * this.totalDist)} / ${this.fmtDist(this.totalDist)}`;
+      this.timelineLabelTarget.textContent = `${this.fmtDist(progress * this.totalDist)} / ${this.fmtDist(this.totalDist)}`;
     }
   }
 
@@ -301,21 +352,24 @@ export default class extends Controller {
     if (this.playing) this.pause();
     this.seekTo(e);
     this._onSeekMove = (e) => this.seekTo(e);
-    this._onSeekEnd  = ()  => this.seekEnd();
+    this._onSeekEnd = () => this.seekEnd();
     document.addEventListener("mousemove", this._onSeekMove);
-    document.addEventListener("mouseup",   this._onSeekEnd);
+    document.addEventListener("mouseup", this._onSeekEnd);
   }
 
   seekTo(e) {
-    const rect     = this.timelineTrackTarget.getBoundingClientRect();
-    const progress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const rect = this.timelineTrackTarget.getBoundingClientRect();
+    const progress = Math.max(
+      0,
+      Math.min(1, (e.clientX - rect.left) / rect.width),
+    );
     this.animProgress = progress;
     this.showRouteProgress(progress);
   }
 
   seekEnd() {
     document.removeEventListener("mousemove", this._onSeekMove);
-    document.removeEventListener("mouseup",   this._onSeekEnd);
+    document.removeEventListener("mouseup", this._onSeekEnd);
     if (this.seekWasPlaying) this.play();
   }
 
@@ -330,7 +384,12 @@ export default class extends Controller {
     for (let i = 0; i < coords.length; i++) {
       if (i > 0) dist += this.haversine(coords[i - 1], coords[i]);
       if (coords[i][2] != null)
-        raw.push({ dist, ele: coords[i][2], lng: coords[i][0], lat: coords[i][1] });
+        raw.push({
+          dist,
+          ele: coords[i][2],
+          lng: coords[i][0],
+          lat: coords[i][1],
+        });
     }
     if (raw.length < 2) return;
 
@@ -341,17 +400,25 @@ export default class extends Controller {
     this.totalDist = this.profilePoints.at(-1).dist;
 
     const eles = this.profilePoints.map((p) => p.ele);
-    const minE = Math.min(...eles), maxE = Math.max(...eles);
+    const minE = Math.min(...eles),
+      maxE = Math.max(...eles);
     const range = maxE - minE || 1;
 
-    const W = 1000, H = 120, pt = 24, pb = 6, pl = 4, pr = 4;
+    const W = 1000,
+      H = 120,
+      pt = 24,
+      pb = 6,
+      pl = 4,
+      pr = 4;
     this.sp = { W, H, pt, pb, pl, pr, minE, maxE, range };
 
     const sx = (d) => pl + (d / this.totalDist) * (W - pl - pr);
     const sy = (e) => H - pb - ((e - minE) / range) * (H - pt - pb);
 
-    const linePts = this.profilePoints.map((p) => `${sx(p.dist).toFixed(1)},${sy(p.ele).toFixed(1)}`).join(" L ");
-    const area    = `M ${sx(0)},${H - pb} L ${linePts} L ${sx(this.totalDist)},${H - pb} Z`;
+    const linePts = this.profilePoints
+      .map((p) => `${sx(p.dist).toFixed(1)},${sy(p.ele).toFixed(1)}`)
+      .join(" L ");
+    const area = `M ${sx(0)},${H - pb} L ${linePts} L ${sx(this.totalDist)},${H - pb} Z`;
 
     const peakIdx = eles.indexOf(maxE);
     const peakX = sx(this.profilePoints[peakIdx].dist).toFixed(1);
@@ -379,9 +446,11 @@ export default class extends Controller {
               text-anchor="end">${this.fmtDist(this.totalDist)}</text>
       </svg>`.trim();
 
-    this.eleCursor  = this.elevationTarget.querySelector("#ele-cursor");
-    this.eleDot     = this.elevationTarget.querySelector("#ele-dot");
-    this.eleTooltip = Object.assign(document.createElement("div"), { className: "elevation-tooltip" });
+    this.eleCursor = this.elevationTarget.querySelector("#ele-cursor");
+    this.eleDot = this.elevationTarget.querySelector("#ele-dot");
+    this.eleTooltip = Object.assign(document.createElement("div"), {
+      className: "elevation-tooltip",
+    });
     this.elevationTarget.appendChild(this.eleTooltip);
 
     this.setupElevationInteraction();
@@ -391,8 +460,11 @@ export default class extends Controller {
     const fig = this.elevationTarget;
 
     fig.addEventListener("mousemove", (e) => {
-      const rect  = fig.getBoundingClientRect();
-      const xFrac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const rect = fig.getBoundingClientRect();
+      const xFrac = Math.max(
+        0,
+        Math.min(1, (e.clientX - rect.left) / rect.width),
+      );
       const point = this.interpolateAtDist(xFrac * this.totalDist);
 
       this.updateCursor(xFrac, point);
@@ -408,14 +480,20 @@ export default class extends Controller {
       this.eleCursor.setAttribute("opacity", "0");
       this.eleDot.setAttribute("opacity", "0");
       this.eleTooltip.hidden = true;
-      this.map.getSource("hover-point").setData({ type: "Feature", geometry: null, properties: {} });
+      this.map
+        .getSource("hover-point")
+        .setData({ type: "Feature", geometry: null, properties: {} });
     });
   }
 
   updateCursor(xFrac, point) {
     const { W, H, pt, pb, pl, pr, minE, range } = this.sp;
     const svgX = (pl + xFrac * (W - pl - pr)).toFixed(1);
-    const svgY = (H - pb - ((point.ele - minE) / range) * (H - pt - pb)).toFixed(1);
+    const svgY = (
+      H -
+      pb -
+      ((point.ele - minE) / range) * (H - pt - pb)
+    ).toFixed(1);
 
     this.eleCursor.setAttribute("x1", svgX);
     this.eleCursor.setAttribute("x2", svgX);
@@ -429,29 +507,32 @@ export default class extends Controller {
     this.eleTooltip.textContent = `${Math.round(point.ele)} m · ${this.fmtDist(point.dist)}`;
     this.eleTooltip.hidden = false;
     if (mouseX > figureWidth * 0.6) {
-      this.eleTooltip.style.left  = "auto";
+      this.eleTooltip.style.left = "auto";
       this.eleTooltip.style.right = `${figureWidth - mouseX + 10}px`;
     } else {
-      this.eleTooltip.style.left  = `${mouseX + 10}px`;
+      this.eleTooltip.style.left = `${mouseX + 10}px`;
       this.eleTooltip.style.right = "auto";
     }
   }
 
   interpolateAtDist(targetDist) {
     const pts = this.profilePoints;
-    let lo = 0, hi = pts.length - 1;
+    let lo = 0,
+      hi = pts.length - 1;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (pts[mid].dist < targetDist) lo = mid + 1; else hi = mid;
+      if (pts[mid].dist < targetDist) lo = mid + 1;
+      else hi = mid;
     }
     if (lo === 0) return pts[0];
-    const a = pts[lo - 1], b = pts[lo];
+    const a = pts[lo - 1],
+      b = pts[lo];
     const t = (targetDist - a.dist) / (b.dist - a.dist);
     return {
       dist: targetDist,
-      ele:  a.ele + t * (b.ele - a.ele),
-      lng:  a.lng + t * (b.lng - a.lng),
-      lat:  a.lat + t * (b.lat - a.lat),
+      ele: a.ele + t * (b.ele - a.ele),
+      lng: a.lng + t * (b.lng - a.lng),
+      lat: a.lat + t * (b.lat - a.lat),
     };
   }
 
@@ -463,7 +544,9 @@ export default class extends Controller {
       data: { type: "Feature", geometry: null, properties: {} },
     });
     this.map.addLayer({
-      id: "hover-point", type: "circle", source: "hover-point",
+      id: "hover-point",
+      type: "circle",
+      source: "hover-point",
       paint: {
         "circle-radius": 7,
         "circle-color": "#ffffff",
@@ -476,11 +559,14 @@ export default class extends Controller {
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   haversine(c1, c2) {
-    const R  = 6371000;
-    const φ1 = (c1[1] * Math.PI) / 180, φ2 = (c2[1] * Math.PI) / 180;
+    const R = 6371000;
+    const φ1 = (c1[1] * Math.PI) / 180,
+      φ2 = (c2[1] * Math.PI) / 180;
     const Δφ = ((c2[1] - c1[1]) * Math.PI) / 180;
     const Δλ = ((c2[0] - c1[0]) * Math.PI) / 180;
-    const a  = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+    const a =
+      Math.sin(Δφ / 2) ** 2 +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
@@ -491,10 +577,29 @@ export default class extends Controller {
   // ── Terrain ───────────────────────────────────────────────────────────────
 
   addTerrainLayer() {
-    const tiles = ["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"];
-    this.map.addSource("hillshade_source", { type: "raster-dem", encoding: "terrarium", tiles, tileSize: 256, minzoom: 0, maxzoom: 14 });
-    this.map.addSource("terrain_source",   { type: "raster-dem", encoding: "terrarium", tiles, tileSize: 256, minzoom: 0, maxzoom: 14 });
+    const tiles = ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"];
+    this.map.addSource("hillshade_source", {
+      type: "raster-dem",
+      encoding: "terrarium",
+      tiles,
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 14,
+    });
+    this.map.addSource("terrain_source", {
+      type: "raster-dem",
+      encoding: "terrarium",
+      tiles,
+      tileSize: 256,
+      minzoom: 0,
+      maxzoom: 14,
+    });
     this.map.setTerrain({ source: "terrain_source", exaggeration: 1.5 });
-    this.map.addLayer({ id: "hillshade", type: "hillshade", source: "hillshade_source", paint: { "hillshade-exaggeration": 0.2 } });
+    this.map.addLayer({
+      id: "hillshade",
+      type: "hillshade",
+      source: "hillshade_source",
+      paint: { "hillshade-exaggeration": 0.2 },
+    });
   }
 }
