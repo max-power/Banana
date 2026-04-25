@@ -154,6 +154,13 @@ export default class extends Controller {
 
     this.map.addSource("route", { type: "geojson", data: geometry });
     this.map.addLayer({
+      id: "route-casing",
+      type: "line",
+      source: "route",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "#ffffff", "line-width": 7, "line-opacity": 0.85 },
+    });
+    this.map.addLayer({
       id: "route",
       type: "line",
       source: "route",
@@ -164,6 +171,13 @@ export default class extends Controller {
     this.map.addSource("route-progress", {
       type: "geojson",
       data: { type: "LineString", coordinates: [] },
+    });
+    this.map.addLayer({
+      id: "route-progress-casing",
+      type: "line",
+      source: "route-progress",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "#ffffff", "line-width": 9, "line-opacity": 0.85 },
     });
     this.map.addLayer({
       id: "route-progress",
@@ -268,6 +282,7 @@ export default class extends Controller {
     this.playing = true;
     this.playButtonTarget.textContent = "⏸";
     this.map.setPaintProperty("route", "line-opacity", 0.2);
+    this.map.setPaintProperty("route-casing", "line-opacity", 0.15);
     if (this.hasTimelineTarget) this.timelineTarget.classList.add("visible");
 
     this.animStartTime = null;
@@ -311,6 +326,7 @@ export default class extends Controller {
       this.playing = false;
       this.playButtonTarget.textContent = "▶";
       this.map.setPaintProperty("route", "line-opacity", 1);
+      this.map.setPaintProperty("route-casing", "line-opacity", 0.85);
     }
   }
 
