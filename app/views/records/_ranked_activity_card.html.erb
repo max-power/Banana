@@ -5,8 +5,10 @@
     <span class="record-card-title"><%= title %></span>
   </div>
   <ol class="record-rank-list">
+    <% medals = %w[🥇 🥈 🥉] %>
     <% records.each_with_index do |r, i| %>
-      <li class="record-rank-item <%= 'record-rank-first' if i == 0 %>">
+      <li class="record-rank-item <%= 'record-rank-first' if i == 0 %> <%= 'record-rank-item--medal' if medals[i] %>">
+        <% if medals[i] %><span class="record-rank-medal"><%= medals[i] %></span><% end %>
         <span class="record-rank-value"><%= r.formatted_value %></span>
         <span class="record-rank-meta">
           <%= link_to r.activity.name.presence || "Untitled", activity_path(r.activity) %>

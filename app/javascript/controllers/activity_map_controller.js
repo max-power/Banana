@@ -91,6 +91,12 @@ export default class extends Controller {
     this.fitBoundsToGeometry(geometry);
     this.addStartEndMarkers(this.routeFeature.properties);
     this.renderElevationProfile(this.animCoords);
+
+    // Terrain tiles load asynchronously — once they arrive, MapLibre adjusts
+    // the 3D projection, which shifts the effective camera on mountainous routes
+    // (wider-looking line, offset markers). Re-fitting after idle corrects this.
+    // Markers auto-reposition because they listen to the resulting move event.
+    this.map.once("idle", () => this.fitBoundsToGeometry(geometry));
   }
 
   applyRouteLayers() {
@@ -132,7 +138,11 @@ export default class extends Controller {
     const extend = (c) => bounds.extend(c);
     if (geometry.type === "LineString")           geometry.coordinates.forEach(extend);
     else if (geometry.type === "MultiLineString") geometry.coordinates.forEach((l) => l.forEach(extend));
-    if (!bounds.isEmpty()) this.map.fitBounds(bounds, { padding: 50, animate: false });
+    if (bounds.isEmpty()) return;
+
+    this.map.resize(); // ensure container dimensions are current
+    const camera = this.map.cameraForBounds(bounds, { padding: 60 });
+    if (camera) this.map.jumpTo({ center: camera.center, zoom: camera.zoom, pitch: 0, bearing: 0 });
   }
 
   addStartEndMarkers({ start, end, waypoints } = {}) {
