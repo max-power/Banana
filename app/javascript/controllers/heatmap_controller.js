@@ -2,6 +2,8 @@ import { Controller } from "@hotwired/stimulus";
 import maplibregl from "maplibre-gl";
 
 const STYLES = ["bright", "liberty", "positron", "dark", "fiord", "black", "white"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const FLAT_STYLE = (color) => ({
   version: 8,
@@ -39,13 +41,15 @@ export default class extends Controller {
     { id: "red",    label: "Red",    stops: ["#b20a2c", "#fffbd5", "#ffffff"] },
     { id: "pink",   label: "Pink",   stops: ["#ffb1ff", "#ffb1ff", "#ffffff"] },
     { id: "cyber",  label: "Cyber",  stops: ["#00ff41", "#b4ff00", "#ffffff"] },
-  ]
+  ];
 
   connect() {
     this.selectedYear    = null;
+    this.selectedMonth   = null;
     this.selectedType    = null;
     this.selectedPalette = localStorage.getItem("heatmap_palette") || "purple";
     this.selectedStyle   = localStorage.getItem("heatmap_style") || this.defaults.style;
+    this.panelOpen       = true;
     this.buildFilterBar();
     this.setupMap();
     this.map.once("load", () => this.addHeatmapTiles());
@@ -56,56 +60,110 @@ export default class extends Controller {
   buildFilterBar() {
     const bar = this.filterBarTarget;
     bar.innerHTML = "";
+    bar.classList.toggle("is-open", this.panelOpen);
 
-    const yearRow = document.createElement("div");
-    yearRow.className = "heatmap-filter-row";
-
-    const allBtn = this.makeBtn("All", !this.selectedYear, () => {
-      this.selectedYear = null;
-      this.buildFilterBar();
-      this.refreshTiles();
+    // Toggle button — always visible
+    const toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.className = "heatmap-panel-toggle";
+    toggleBtn.title = "Filters";
+    toggleBtn.textContent = "☰";
+    toggleBtn.addEventListener("click", () => {
+      this.panelOpen = !this.panelOpen;
+      bar.classList.toggle("is-open", this.panelOpen);
     });
-    yearRow.appendChild(allBtn);
+    bar.appendChild(toggleBtn);
 
-    if (this.yearsValue.length > 0) {
-      yearRow.appendChild(this.makeDivider());
-      this.yearsValue.forEach((year) => {
-        const btn = this.makeBtn(year, this.selectedYear === year, () => {
-          this.selectedYear = this.selectedYear === year ? null : year;
-          this.buildFilterBar();
-          this.refreshTiles();
-        });
-        yearRow.appendChild(btn);
-      });
-    }
+    // Panel body
+    const body = document.createElement("div");
+    body.className = "heatmap-panel-body";
 
-    bar.appendChild(yearRow);
+    body.appendChild(this.buildSection("Year", this.buildYearOptions()));
 
     if (this.typesValue.length > 1) {
-      const typeRow = document.createElement("div");
-      typeRow.className = "heatmap-filter-row";
-
-      const allBtn = this.makeBtn("All", !this.selectedType, () => {
-        this.selectedType = null;
-        this.buildFilterBar();
-        this.refreshTiles();
-      });
-      typeRow.appendChild(allBtn);
-      typeRow.appendChild(this.makeDivider());
-
-      this.typesValue.forEach((type) => {
-        const btn = this.makeBtn(type.replace(/_/g, " "), this.selectedType === type, () => {
-          this.selectedType = this.selectedType === type ? null : type;
-          this.buildFilterBar();
-          this.refreshTiles();
-        });
-        typeRow.appendChild(btn);
-      });
-      bar.appendChild(typeRow);
+      body.appendChild(this.buildSection("Type", this.buildTypeOptions()));
     }
 
-    const paletteRow = document.createElement("div");
-    paletteRow.className = "heatmap-filter-row";
+    body.appendChild(this.buildSection("Palette", this.buildPaletteOptions()));
+    body.appendChild(this.buildSection("Style", this.buildStyleOptions()));
+
+    bar.appendChild(body);
+  }
+
+  buildSection(label, content) {
+    const section = document.createElement("div");
+    section.className = "heatmap-panel-section";
+    const h = document.createElement("p");
+    h.className = "heatmap-panel-label";
+    h.textContent = label;
+    section.appendChild(h);
+    section.appendChild(content);
+    return section;
+  }
+
+  buildYearOptions() {
+    const wrap = document.createElement("div");
+
+    wrap.appendChild(this.makeBtn("All", !this.selectedYear, () => {
+      this.selectedYear  = null;
+      this.selectedMonth = null;
+      this.buildFilterBar();
+      this.refreshTiles();
+    }));
+
+    this.yearsValue.forEach((year) => {
+      wrap.appendChild(this.makeBtn(String(year), this.selectedYear === year, () => {
+        this.selectedYear  = this.selectedYear === year ? null : year;
+        this.selectedMonth = null;
+        this.buildFilterBar();
+        this.refreshTiles();
+      }));
+
+      // Month grid expands inline below the selected year
+      if (this.selectedYear === year) {
+        const grid = document.createElement("div");
+        grid.className = "heatmap-month-grid";
+        MONTHS.forEach((name, i) => {
+          const month = i + 1;
+          const btn = this.makeBtn(name, this.selectedMonth === month, () => {
+            this.selectedMonth = this.selectedMonth === month ? null : month;
+            this.buildFilterBar();
+            this.refreshTiles();
+          });
+          btn.classList.add("heatmap-filter-btn--month");
+          grid.appendChild(btn);
+        });
+        wrap.appendChild(grid);
+      }
+    });
+
+    return wrap;
+  }
+
+  buildTypeOptions() {
+    const wrap = document.createElement("div");
+
+    wrap.appendChild(this.makeBtn("All", !this.selectedType, () => {
+      this.selectedType = null;
+      this.buildFilterBar();
+      this.refreshTiles();
+    }));
+
+    this.typesValue.forEach((type) => {
+      wrap.appendChild(this.makeBtn(type.replace(/_/g, " "), this.selectedType === type, () => {
+        this.selectedType = this.selectedType === type ? null : type;
+        this.buildFilterBar();
+        this.refreshTiles();
+      }));
+    });
+
+    return wrap;
+  }
+
+  buildPaletteOptions() {
+    const wrap = document.createElement("div");
+    wrap.className = "heatmap-palette-row";
+
     this.palettes.forEach(({ id, label, stops }) => {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -118,23 +176,30 @@ export default class extends Controller {
         this.buildFilterBar();
         this.refreshTiles();
       });
-      paletteRow.appendChild(btn);
+      wrap.appendChild(btn);
     });
-    bar.appendChild(paletteRow);
 
-    const styleRow = document.createElement("div");
-    styleRow.className = "heatmap-filter-row";
+    return wrap;
+  }
+
+  buildStyleOptions() {
+    const wrap = document.createElement("div");
+
     STYLES.forEach((style) => {
-      const btn = this.makeBtn(style.charAt(0).toUpperCase() + style.slice(1), this.selectedStyle === style, () => {
-        this.selectedStyle = style;
-        localStorage.setItem("heatmap_style", style);
-        this.buildFilterBar();
-        this.map.setStyle(STYLE_URL(style));
-        this.map.once("style.load", () => this.addHeatmapTiles());
-      });
-      styleRow.appendChild(btn);
+      wrap.appendChild(this.makeBtn(
+        style.charAt(0).toUpperCase() + style.slice(1),
+        this.selectedStyle === style,
+        () => {
+          this.selectedStyle = style;
+          localStorage.setItem("heatmap_style", style);
+          this.buildFilterBar();
+          this.map.setStyle(STYLE_URL(style));
+          this.map.once("style.load", () => this.addHeatmapTiles());
+        }
+      ));
     });
-    bar.appendChild(styleRow);
+
+    return wrap;
   }
 
   makeBtn(label, active, onClick) {
@@ -146,17 +211,12 @@ export default class extends Controller {
     return btn;
   }
 
-  makeDivider() {
-    const span = document.createElement("span");
-    span.className = "heatmap-filter-divider";
-    return span;
-  }
-
   // ── Tile URL ──────────────────────────────────────────────────────────────
 
   get tileUrl() {
     const qs = new URLSearchParams();
     if (this.selectedYear)    qs.set("year",    this.selectedYear);
+    if (this.selectedMonth)   qs.set("month",   this.selectedMonth);
     if (this.selectedType)    qs.set("type",    this.selectedType);
     if (this.selectedPalette) qs.set("palette", this.selectedPalette);
     const q = qs.toString();
@@ -219,5 +279,4 @@ export default class extends Controller {
   getMapZoom() {
     return this.zoomValue || this.defaults.zoom;
   }
-
 }

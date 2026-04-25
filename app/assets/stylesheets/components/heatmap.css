@@ -12,47 +12,96 @@
     width: 100%;
   }
 
+  /* ── Panel container ───────────────────────────────────────────────────── */
+
   .heatmap-filter {
     position: absolute;
     top: 0.75rem;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0.75rem;
     z-index: 10;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    background: oklch(18% 0.012 264 / 0.82);
-    backdrop-filter: blur(6px);
-    border-radius: var(--radius-md);
-    padding: 4px;
-    max-width: calc(100% - 2rem);
+    align-items: flex-start;
+    gap: 4px;
   }
 
-  .heatmap-filter-row {
+  /* ── Toggle button ─────────────────────────────────────────────────────── */
+
+  .heatmap-panel-toggle {
+    width: 2.25rem;
+    height: 2.25rem;
+    background: oklch(18% 0.012 264 / 0.85);
+    backdrop-filter: blur(6px);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: oklch(94% 0.005 264 / 0.8);
+    font-size: 1rem;
+    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 2px;
-    margin: -2px;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &:hover { color: white; }
   }
 
+  /* ── Panel body ────────────────────────────────────────────────────────── */
+
+  .heatmap-panel-body {
+    display: none;
+    flex-direction: column;
+    background: oklch(18% 0.012 264 / 0.85);
+    backdrop-filter: blur(6px);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.5rem;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    scrollbar-width: none;
+    min-width: 150px;
+  }
+
+  .heatmap-filter.is-open .heatmap-panel-body {
+    display: flex;
+  }
+
+  /* ── Sections ──────────────────────────────────────────────────────────── */
+
+  .heatmap-panel-section {
+    & + & {
+      margin-block-start: 0.65rem;
+      padding-block-start: 0.65rem;
+      border-top: 1px solid oklch(94% 0.005 264 / 0.12);
+    }
+  }
+
+  .heatmap-panel-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: oklch(94% 0.005 264 / 0.4);
+    margin: 0 0 0.3rem 0.4rem;
+  }
+
+  /* ── Filter buttons ────────────────────────────────────────────────────── */
+
   .heatmap-filter-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
     background: transparent;
     border: none;
     border-radius: var(--radius-sm);
     color: oklch(94% 0.005 264 / 0.7);
     font-family: inherit;
-    font-size: 0.72rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.78rem;
+    padding: 0.2rem 0.4rem;
     cursor: pointer;
     white-space: nowrap;
     transition: background 0.1s, color 0.1s;
 
     &:hover {
       background: oklch(94% 0.005 264 / 0.12);
-      color: oklch(100% 0 0);
+      color: white;
     }
     &.active {
       background: var(--brand);
@@ -60,25 +109,41 @@
     }
   }
 
+  /* ── Month grid (expands below selected year) ──────────────────────────── */
+
+  .heatmap-month-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    margin: 0.2rem 0 0.3rem 0.5rem;
+
+    .heatmap-filter-btn--month {
+      text-align: center;
+      font-size: 0.68rem;
+      padding: 0.15rem 0.1rem;
+    }
+  }
+
+  /* ── Palette swatches ──────────────────────────────────────────────────── */
+
+  .heatmap-palette-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-inline: 0.4rem;
+  }
+
   .heatmap-palette-btn {
     width: 2rem;
     height: 0.85rem;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: 2px;
     cursor: pointer;
     padding: 0;
     flex-shrink: 0;
     transition: box-shadow 0.1s;
 
     &:hover { box-shadow: 0 0 0 2px oklch(94% 0.005 264 / 0.5); }
-    &.active { box-shadow: 0 0 0 2px oklch(100% 0 0); }
-  }
-
-  .heatmap-filter-divider {
-    width: 1px;
-    height: 1rem;
-    background: oklch(94% 0.005 264 / 0.2);
-    margin: 0 2px;
-    flex-shrink: 0;
+    &.active { box-shadow: 0 0 0 2px white; }
   }
 }

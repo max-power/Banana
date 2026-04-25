@@ -12,6 +12,7 @@ class TilesController < ApplicationController
       format.png do
         scope = ActivityTile.joins(:activity).where(user_id: Current.user.id, z: z, x: x, y: y)
         scope = scope.where(start_year: params[:year].to_i) if params[:year].present?
+        scope = scope.where("EXTRACT(MONTH FROM activities.start_time) = ?", params[:month].to_i) if params[:month].present?
         scope = scope.where(activities: { activity_type: params[:type] }) if params[:type].present?
 
         rows = scope.pluck(:pixels)
