@@ -226,10 +226,63 @@
     height: 480px;
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     overflow: hidden;
+    position: relative;
 
     @media (max-width: 640px) {
       height: 280px;
     }
+  }
+
+  /* Route loading state */
+  .route-loading {
+    .activity-map::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    /* Spinner badge centred on the map */
+    .activity-map::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 6;
+      width: 2rem;
+      height: 2rem;
+      margin: -1rem 0 0 -1rem;
+      border: 3px solid var(--surface-1);
+      border-top-color: var(--brand);
+      border-radius: 50%;
+      animation: map-spin 0.7s linear infinite;
+      pointer-events: none;
+    }
+
+    /* Shimmer on the elevation area while it's empty */
+    .activity-elevation {
+      background: linear-gradient(
+        90deg,
+        var(--brand-a10) 25%,
+        var(--brand-a15) 50%,
+        var(--brand-a10) 75%
+      );
+      background-size: 200% 100%;
+      animation: map-shimmer 1.4s ease infinite;
+    }
+  }
+
+  @keyframes map-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes map-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 
   /* Fullscreen: the Stimulus element becomes the fullscreen root */

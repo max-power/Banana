@@ -106,9 +106,13 @@ export default class extends Controller {
   // ── Route loading ─────────────────────────────────────────────────────────
 
   async loadRoute() {
+    this.element.classList.add("route-loading");
+
     const response = await fetch(this.urlValue);
     this.routeFeature = await response.json();
     const geometry = this.routeFeature?.geometry;
+
+    this.element.classList.remove("route-loading");
     if (!geometry) return;
 
     this.animCoords = this.flattenCoords(geometry);
@@ -450,6 +454,7 @@ export default class extends Controller {
     this.eleDot = this.elevationTarget.querySelector("#ele-dot");
     this.eleTooltip = Object.assign(document.createElement("div"), {
       className: "elevation-tooltip",
+      hidden: true,
     });
     this.elevationTarget.appendChild(this.eleTooltip);
 
