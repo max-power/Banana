@@ -140,13 +140,48 @@ class Activity < ApplicationRecord
   def check_for_duplicate
     return unless start_time && distance&.positive?
 
-    match = user.activities
-      .where.not(id: id)
-      .where(start_time: (start_time - 2.minutes)..(start_time + 2.minutes))
-      .where(distance: (distance * 0.98)..(distance * 1.02))
-      .first
+    match = find_duplicate_candidate
+    update_column(:duplicate_of_id, match)
+  end
 
-    update_column(:duplicate_of_id, match&.id)
+  def find_duplicate_candidate
+    # Phase 1: fast metadata pre-filter — widen windows so re-uploads from
+    # different devices (Strava sync vs. manual upload) aren't missed.
+    params = [ user_id, id, start_time - 30.minutes, start_time + 30.minutes, distance * 0.95, distance * 1.05 ]
+    sql = <<~SQL
+      SELECT id FROM activities
+      WHERE user_id    = $1
+        AND id        != $2
+        AND type      IS NULL
+        AND start_time BETWEEN $3 AND $4
+        AND distance   BETWEEN $5 AND $6
+    SQL
+    candidates = self.class.connection.exec_query(sql, "duplicate_candidates", params).rows.flatten
+
+    return nil if candidates.empty?
+
+    # Phase 2: if both activities have track geometry, use ST_HausdorffDistance
+    # to confirm the routes are actually the same, not just similar in length.
+    # Threshold of 500 (SRID-3857 units ≈ 300–500 m real) rejects different
+    # routes that happen to share start/end times and similar distances.
+    if track_3857.present?
+      geo_sql = <<~SQL
+        SELECT b.id
+        FROM activities a
+        JOIN activities b ON b.id = ANY($2::uuid[])
+        WHERE a.id = $1
+          AND b.track_3857 IS NOT NULL
+          AND ST_HausdorffDistance(a.track_3857, b.track_3857) < 500
+        ORDER BY ST_HausdorffDistance(a.track_3857, b.track_3857)
+        LIMIT 1
+      SQL
+      geo_match = self.class.connection.exec_query(geo_sql, "duplicate_geo", [ id, candidates ])
+      return geo_match.rows.first&.first if geo_match.any?
+    end
+
+    # Phase 3: fallback for activities without geometry — accept the metadata
+    # match (same logic as before, just with the wider windows).
+    candidates.first
   end
 
   def update_track_3857
