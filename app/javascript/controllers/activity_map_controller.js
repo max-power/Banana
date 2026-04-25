@@ -24,8 +24,8 @@ export default class extends Controller {
     this.setActiveStyle(savedStyle);
 
     this.map.on("load", () => {
-      this.addTerrainLayer();
       this.loadRoute();
+      this.addTerrainLayer();
     });
   }
 
