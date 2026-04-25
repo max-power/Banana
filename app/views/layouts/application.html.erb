@@ -46,8 +46,15 @@
         </nav>
         <nav class="user">
           <ul>
-            <li><%= link_to "Account", account_path %></li>
-            <li><%= button_to "Sign out", session_path, method: :delete, class: "sign-out" %></li>
+            <li class="account-menu">
+              <details class="account-dropdown">
+                <summary class="account-dropdown-trigger">Account ▾</summary>
+                <div class="account-dropdown-menu">
+                  <%= link_to "Settings", account_path %>
+                  <%= button_to "Sign out", session_path, method: :delete %>
+                </div>
+              </details>
+            </li>
             <li>
               <button class="color-scheme-btn"
                       data-controller="color-scheme"

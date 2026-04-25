@@ -101,6 +101,7 @@
       .col-elevation {
         text-align: right;
         font-variant-numeric: tabular-nums;
+        white-space: nowrap;
       }
       &:hover {
         cursor: pointer;
@@ -231,5 +232,28 @@
     content: "";
     position: absolute;
     inset: 0;
+  }
+
+  @media (max-width: 640px) {
+
+    /* Cards: stack map on top, content below */
+    .activity-card {
+      grid-template-columns: 1fr;
+
+      .activity-card-map {
+        height: 180px;
+      }
+    }
+
+    /* Compact list: show type, name, distance only */
+    .activity-feed--compact .activity-row {
+      grid-template-columns: 4rem 1fr 5rem;
+
+      .col-date,
+      .col-duration,
+      .col-elevation {
+        display: none;
+      }
+    }
   }
 }

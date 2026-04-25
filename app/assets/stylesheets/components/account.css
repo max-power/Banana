@@ -160,6 +160,7 @@
 
   .activity-toolbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
     margin-block-end: 1.5rem;
@@ -188,13 +189,24 @@
   }
 
   .activity-search-input {
-    flex: 1;
+    flex: 1 0 calc(100% - 5rem);
     min-width: 0;
-    max-width: 260px;
+    max-width: none;
+    order: 1;
   }
 
   .activity-toolbar-select {
+    flex: 1 1 0;
+    min-width: 0;
     cursor: pointer;
+    order: 3;
+  }
+
+  /* .view-toggle sits between search (order 1) and selects (order 3) */
+  .activity-toolbar .view-toggle {
+    order: 2;
+    flex-shrink: 0;
+    margin-inline-start: 0;
   }
 
   /* .view-toggle and .view-toggle-btn are defined in components/activity-card.css */
