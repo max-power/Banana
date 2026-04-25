@@ -391,6 +391,24 @@
     flex-shrink: 0;
   }
 
+  .map-speed-btn {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand);
+
+    &:hover { background: var(--surface-2); }
+  }
+
   .activity-elevation {
     position: relative;
     margin: 0 0 1.5rem;

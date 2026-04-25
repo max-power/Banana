@@ -5,10 +5,11 @@ const STYLES = ["bright", "liberty", "positron", "dark", "fiord"];
 const STYLE_URL = (s) => `https://tiles.openfreemap.org/styles/${s}`;
 
 export default class extends Controller {
-  static targets = ["map", "elevation", "playButton", "styleOption", "timeline", "timelineTrack", "timelineFill", "timelineThumb", "timelineLabel"];
+  static targets = ["map", "elevation", "playButton", "speedButton", "styleOption", "timeline", "timelineTrack", "timelineFill", "timelineThumb", "timelineLabel"];
   static values  = { url: String, arrowUrl: String };
 
   connect() {
+    this.speedMultiplier = 1;
     const savedStyle = localStorage.getItem("mapStyle") || "bright";
 
     this.map = new maplibregl.Map({
@@ -83,8 +84,22 @@ export default class extends Controller {
 
     this.animCoords   = this.flattenCoords(geometry);
     this.animProgress = 0;
-    this.animDuration = 20000;
     this.playing      = false;
+
+    // Pre-calculate cumulative distances so animation speed is constant in
+    // geographic terms rather than per-coordinate (which distorts at slow/
+    // stopped sections where GPS points are densely packed).
+    this.animDistances = [0];
+    for (let i = 1; i < this.animCoords.length; i++) {
+      this.animDistances.push(
+        this.animDistances[i - 1] + this.haversine(this.animCoords[i - 1], this.animCoords[i])
+      );
+    }
+    this.animTotalDist = this.animDistances.at(-1) || 1;
+
+    // ~1 ms per metre (1 s per km), clamped to 10 – 90 s
+    this.animDuration = Math.max(10000, Math.min(this.animTotalDist, 90000));
+
     if (this.hasPlayButtonTarget) this.playButtonTarget.disabled = false;
 
     this.applyRouteLayers();
@@ -214,11 +229,21 @@ export default class extends Controller {
     if (this.animFrameId) { cancelAnimationFrame(this.animFrameId); this.animFrameId = null; }
   }
 
-  animateFrame(timestamp) {
-    if (!this.animStartTime)
-      this.animStartTime = timestamp - this.animProgress * this.animDuration;
+  cycleSpeed() {
+    const steps = [1, 2, 3, 5, 10];
+    const next  = steps[(steps.indexOf(this.speedMultiplier) + 1) % steps.length];
+    this.speedMultiplier = next;
+    this.animStartTime   = null; // recalculate from current progress at new speed
+    if (this.hasSpeedButtonTarget)
+      this.speedButtonTarget.textContent = `${next}×`;
+  }
 
-    const progress = Math.min(1, (timestamp - this.animStartTime) / this.animDuration);
+  animateFrame(timestamp) {
+    const effectiveDuration = this.animDuration / this.speedMultiplier;
+    if (!this.animStartTime)
+      this.animStartTime = timestamp - this.animProgress * effectiveDuration;
+
+    const progress = Math.min(1, (timestamp - this.animStartTime) / effectiveDuration);
     this.animProgress = progress;
     this.showRouteProgress(progress);
 
@@ -232,9 +257,15 @@ export default class extends Controller {
   }
 
   showRouteProgress(progress) {
-    const coords = this.animCoords;
-    const idx    = Math.min(coords.length - 1, Math.floor(progress * (coords.length - 1)));
-    const sliced = coords.slice(0, idx + 1);
+    // Binary search: find the coordinate index at the target distance
+    const targetDist = progress * this.animTotalDist;
+    const dists = this.animDistances;
+    let lo = 0, hi = dists.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (dists[mid] <= targetDist) lo = mid; else hi = mid - 1;
+    }
+    const sliced = this.animCoords.slice(0, lo + 1);
     if (sliced.length < 2) return;
 
     this.map.getSource("route-progress").setData({ type: "LineString", coordinates: sliced });
