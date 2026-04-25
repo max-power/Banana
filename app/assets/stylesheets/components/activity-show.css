@@ -45,6 +45,16 @@
       font-size: 0.8em;
       padding-block-start: 0.25rem;
     }
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .activity-actions {
+        padding-block-start: 0;
+        gap: 0.75rem;
+      }
+    }
   }
 
   .upload-warning {
@@ -199,12 +209,46 @@
         font-variant-numeric: tabular-nums;
       }
     }
+
+    @media (max-width: 640px) {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem 0;
+      justify-content: unset;
+
+      .stat-bar-item {
+        padding: 0;
+      }
+    }
   }
 
   .activity-map {
     height: 480px;
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     overflow: hidden;
+
+    @media (max-width: 640px) {
+      height: 280px;
+    }
+  }
+
+  /* Fullscreen: the Stimulus element becomes the fullscreen root */
+  [data-controller="activity-map"]:fullscreen {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-1);
+
+    .activity-map {
+      flex: 1;
+      height: auto;
+      border-radius: 0;
+    }
+
+    .activity-elevation {
+      height: 100px;
+      margin: 0;
+      border-radius: 0;
+    }
   }
 
   .map-style-switcher {

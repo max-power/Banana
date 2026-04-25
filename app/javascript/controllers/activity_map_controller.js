@@ -22,7 +22,12 @@ export default class extends Controller {
 
     this.map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     this.map.addControl(this.tiltControl(), "top-right");
+    this.map.addControl(new maplibregl.FullscreenControl({ container: this.element }), "top-right");
     this.setActiveStyle(savedStyle);
+
+    document.addEventListener("fullscreenchange", this._onFullscreenChange = () => {
+      this.map.resize();
+    });
 
     this.map.on("load", () => {
       this.loadRoute();
@@ -52,6 +57,7 @@ export default class extends Controller {
 
   disconnect() {
     if (this.animFrameId) cancelAnimationFrame(this.animFrameId);
+    document.removeEventListener("fullscreenchange", this._onFullscreenChange);
     this.map.remove();
   }
 

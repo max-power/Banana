@@ -1,5 +1,7 @@
 # Banana
 
+![Banana](banana.jpeg)
+
 A self-hosted activity tracker for cyclists and other athletes. Upload GPX or FIT files, visualise your routes on an interactive map, explore a heatmap of all your rides, and organise multi-day trips into tours.
 
 ## Features
@@ -11,7 +13,6 @@ A self-hosted activity tracker for cyclists and other athletes. Upload GPX or FI
 - **Heatmap** — raster tile heatmap of all activities at any zoom level, precomputed per activity and stored as compressed pixel bitmaps
 - **Tours** — group multi-day activities into tours; pick a date range and matching activities are assigned automatically
 - **Calendar** — monthly and yearly activity summaries
-- **Sharing** — shareable read-only links (`/s/:token`) and embeddable iframes per activity or tour
 - **Filtering & sorting** — search by name, filter by activity type and year, sort by date / distance / elevation / name
 - **Export** — GeoJSON, GPX, and static PNG map image per activity
 - **Public athlete profiles** — opt-in public page showing your activities
@@ -35,13 +36,15 @@ Both GPX and FIT files go through the same pipeline on upload:
 5. **Analyse** — `Track::ElevationMetric` and `Track::Segment` compute gain/loss, distance, and moving time per segment
 6. **Store** — metadata written to the `activities` table; segments stored as PostGIS `LineString` geometries
 
-## Requirements
+## Installation
 
-- Ruby (see `.ruby-version`)
-- PostgreSQL with PostGIS extension
-- libvips (Active Storage image processing)
+### Self-hosted (Linux, Docker)
 
-## Setup
+See **[INSTALL.md](INSTALL.md)** for the non-technical guide — install Docker, run `./start.sh`, done.
+
+### Developer setup
+
+**Requirements:** Ruby (see `.ruby-version`), PostgreSQL with PostGIS, libvips
 
 ```sh
 bundle install
@@ -49,7 +52,7 @@ rails db:create db:schema:load
 rails server
 ```
 
-Create your account by visiting `/session/new` and entering your email address. The magic link is printed to the development log.
+Create your account by visiting `/session/new` and entering your email. The magic link is printed to the development log.
 
 ## Heatmap tiles
 

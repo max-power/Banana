@@ -15,10 +15,86 @@
 
     nav ul {
       display: flex;
+      align-items: center;
       gap: 1rem;
       list-style: none;
       margin: 0;
       padding: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    #app-header,
+    #app-main {
+      padding: 0.6rem 0.75rem;
+      width: calc(100% - 1.5rem);
+    }
+
+    #app-header {
+      gap: 0.4rem;
+
+      nav.main ul,
+      nav.user ul {
+        gap: 0.6rem;
+        font-size: 0.82rem;
+      }
+
+    }
+  }
+
+  .account-menu {
+    position: relative;
+  }
+
+  .account-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.25em;
+    list-style: none;
+    cursor: pointer;
+    font-size: inherit;
+    font-weight: inherit;
+    color: var(--brand);
+    white-space: nowrap;
+
+    &::-webkit-details-marker { display: none; }
+  }
+
+  .account-dropdown[open] > .account-dropdown-trigger::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9;
+  }
+
+  .account-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 10;
+    background: var(--surface-1);
+    border: 1px solid var(--border-1);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+
+    a, button {
+      display: block;
+      width: 100%;
+      padding: 0.5rem 0.85rem;
+      text-align: left;
+      text-decoration: none;
+      color: inherit;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: none;
+      border: none;
+      cursor: pointer;
+      box-sizing: border-box;
+
+      &:hover { background: var(--surface-2); }
     }
   }
 

@@ -102,6 +102,26 @@
     }
   }
 
+  @media (max-width: 640px) {
+    .tour-card-summary {
+      grid-template-columns: 1fr;
+
+      .activity-card-map {
+        height: 180px;
+      }
+    }
+
+    .tour-card-activities .activity-row {
+      grid-template-columns: 4rem 1fr 5rem;
+
+      .col-date,
+      .col-duration,
+      .col-elevation {
+        display: none;
+      }
+    }
+  }
+
   /* Tour form */
   .tour-form {
     max-width: 600px;

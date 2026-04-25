@@ -16,9 +16,7 @@
     </div>
     <nav class="activity-actions">
       <% if @is_owner %>
-        <button class="share-btn" data-share-url="<%= shared_activity_url(@activity.share_token) %>"
-                onclick="navigator.clipboard.writeText(this.dataset.shareUrl).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Share', 2000) })">Share</button>
-        <%= link_to "Edit", edit_activity_path(@activity) %>
+<%= link_to "Edit", edit_activity_path(@activity) %>
         <details class="download-dropdown">
           <summary>Tours</summary>
           <div class="download-menu">
