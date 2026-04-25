@@ -1,8 +1,8 @@
 ActivityProfile = Data.define(:name, :moving_speed_m_s, :max_speed_m_s) do
   PROFILES = {
-    cycling: new(name: "Cycling", moving_speed_m_s: 1.5, max_speed_m_s: 20.0),
-    running: new(name: "Running", moving_speed_m_s: 0.7, max_speed_m_s:  8.0),
-    walking: new(name: "Walking", moving_speed_m_s: 0.3, max_speed_m_s:  3.0),
+    cycling: new(name: "Cycling", moving_speed_m_s: 1.5, max_speed_m_s: 27.0), # ~97 km/h — allows fast descents
+    running: new(name: "Running", moving_speed_m_s: 0.7, max_speed_m_s:  9.0), # ~32 km/h
+    walking: new(name: "Walking", moving_speed_m_s: 0.3, max_speed_m_s:  4.0), # ~14 km/h
   }.freeze
 
   ALIASES = {

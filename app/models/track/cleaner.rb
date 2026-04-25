@@ -72,7 +72,10 @@ module Track
     end
 
     def reject_speed_jump?(speed)
-      profile && !profile.valid_speed?(speed) && report(:speed_jumps)
+      # Only reject impossibly fast speeds (GPS teleportation errors).
+      # Slow movement is always legitimate — min-speed filtering belongs in
+      # moving-time calculation, not here.
+      profile && speed && speed > profile.max_speed_m_s && report(:speed_jumps)
     end
 
     def reject_distance_jump?(dist)
