@@ -23,6 +23,7 @@
     cursor: pointer;
     list-style: none;
     min-height: 90px;
+    position: relative;
 
     &:not(:has(.activity-card-map)) {
       grid-template-columns: 1fr;
@@ -43,7 +44,7 @@
     }
 
     .activity-card-body {
-      position: relative;
+      position: static;
     }
   }
 
