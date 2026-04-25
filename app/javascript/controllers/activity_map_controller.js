@@ -577,28 +577,19 @@ export default class extends Controller {
   // ── Terrain ───────────────────────────────────────────────────────────────
 
   addTerrainLayer() {
-    const tiles = ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"];
-    this.map.addSource("hillshade_source", {
+    // Single source shared by both terrain exaggeration and hillshade.
+    // The TileJSON endpoint provides correct zoom range, tile size, and
+    // attribution automatically — no need to hard-code those values.
+    this.map.addSource("terrain", {
       type: "raster-dem",
+      url: "https://tiles.mapterhorn.com/tilejson.json",
       encoding: "terrarium",
-      tiles,
-      tileSize: 256,
-      minzoom: 0,
-      maxzoom: 14,
     });
-    this.map.addSource("terrain_source", {
-      type: "raster-dem",
-      encoding: "terrarium",
-      tiles,
-      tileSize: 256,
-      minzoom: 0,
-      maxzoom: 14,
-    });
-    this.map.setTerrain({ source: "terrain_source", exaggeration: 1.5 });
+    this.map.setTerrain({ source: "terrain", exaggeration: 1.0 });
     this.map.addLayer({
       id: "hillshade",
       type: "hillshade",
-      source: "hillshade_source",
+      source: "terrain",
       paint: { "hillshade-exaggeration": 0.2 },
     });
   }
