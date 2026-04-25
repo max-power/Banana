@@ -72,8 +72,10 @@
             <span class="record-card-title">Longest streaks</span>
           </div>
           <ol class="record-rank-list">
+            <% medals = %w[🥇 🥈 🥉] %>
             <% top.each_with_index do |streak, i| %>
-              <li class="record-rank-item <%= 'record-rank-first' if i == 0 %>">
+              <li class="record-rank-item <%= 'record-rank-first' if i == 0 %> <%= 'record-rank-item--medal' if medals[i] %>">
+                <% if medals[i] %><span class="record-rank-medal"><%= medals[i] %></span><% end %>
                 <span class="record-rank-value"><%= pluralize(streak.days, "day") %></span>
                 <span class="record-rank-meta">
                   <%= streak.start_date.strftime("%b %-d") %> – <%= streak.end_date.strftime("%b %-d, %Y") %>

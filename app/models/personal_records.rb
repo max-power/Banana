@@ -23,7 +23,7 @@ class PersonalRecords
 
   def most_elevation
     @scope.where.not(elevation_gain: nil).order(elevation_gain: :desc).limit(3).map do |a|
-      ActivityRecord.new(activity: a, formatted_value: "↑ #{a.elevation_gain.round} m")
+      ActivityRecord.new(activity: a, formatted_value: "#{a.elevation_gain.round} m")
     end
   end
 
