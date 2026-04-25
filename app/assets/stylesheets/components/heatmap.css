@@ -124,6 +124,25 @@
     }
   }
 
+  /* ── Style icon buttons ────────────────────────────────────────────────── */
+
+  .heatmap-style-btn {
+    width: 2rem;
+    height: 1.4rem;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: transparent;
+    transition: box-shadow 0.1s;
+
+    svg { display: block; width: calc(100% + 1px); height: calc(100% + 1px); }
+    &:hover { box-shadow: 0 0 0 2px oklch(94% 0.005 264 / 0.5); }
+    &.active { box-shadow: 0 0 0 2px white; }
+  }
+
   /* ── Palette swatches ──────────────────────────────────────────────────── */
 
   .heatmap-palette-row {

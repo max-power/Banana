@@ -34,6 +34,16 @@ export default class extends Controller {
     style: "dark",
   };
 
+  styleThumbs = [
+    { id: "bright",   label: "Bright",   bg: "#f0ece4", road1: "#d4a96a", road2: "#c8a070", water: "#a8d4e6", wx: 0,  wy: 24, ww: 18, wh: 12 },
+    { id: "liberty",  label: "Liberty",  bg: "#f5ede3", road1: "#c8755a", road2: "#c8755a", water: "#b8d4a0", wx: 32, wy: 0,  ww: 20, wh: 14 },
+    { id: "positron", label: "Positron", bg: "#f4f4f0", road1: "#b0b0b0", road2: "#b8b8b8", water: "#ccdce8", wx: 34, wy: 22, ww: 18, wh: 14 },
+    { id: "dark",     label: "Dark",     bg: "#1a1a2e", road1: "#4a4a7a", road2: "#3a3a6a", water: "#0d2035", wx: 0,  wy: 24, ww: 20, wh: 12 },
+    { id: "fiord",    label: "Fiord",    bg: "#253448", road1: "#3d5570", road2: "#344d65", water: "#1a2535", wx: 30, wy: 18, ww: 22, wh: 18 },
+    { id: "black",    label: "Black",    bg: "#000000" },
+    { id: "white",    label: "White",    bg: "#ffffff" },
+  ];
+
   palettes = [
     { id: "purple", label: "Purple", stops: ["#5500f5", "#5500f5", "#ffffff"] },
     { id: "hot",    label: "Hot",    stops: ["#3f5efb", "#fc466b", "#ffffff"] },
@@ -41,6 +51,7 @@ export default class extends Controller {
     { id: "red",    label: "Red",    stops: ["#b20a2c", "#fffbd5", "#ffffff"] },
     { id: "pink",   label: "Pink",   stops: ["#ffb1ff", "#ffb1ff", "#ffffff"] },
     { id: "cyber",  label: "Cyber",  stops: ["#00ff41", "#b4ff00", "#ffffff"] },
+    { id: "ocean",  label: "Ocean",  stops: ["#03045e", "#0096c7", "#ffffff"] },
   ];
 
   connect() {
@@ -184,19 +195,31 @@ export default class extends Controller {
 
   buildStyleOptions() {
     const wrap = document.createElement("div");
+    wrap.className = "heatmap-palette-row";
 
-    STYLES.forEach((style) => {
-      wrap.appendChild(this.makeBtn(
-        style.charAt(0).toUpperCase() + style.slice(1),
-        this.selectedStyle === style,
-        () => {
-          this.selectedStyle = style;
-          localStorage.setItem("heatmap_style", style);
-          this.buildFilterBar();
-          this.map.setStyle(STYLE_URL(style));
-          this.map.once("style.load", () => this.addHeatmapTiles());
-        }
-      ));
+    this.styleThumbs.forEach(({ id, label, bg, road1, road2, water, wx, wy, ww, wh }) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.title = label;
+      btn.className = "heatmap-style-btn" + (this.selectedStyle === id ? " active" : "");
+      btn.innerHTML = road1 ? `
+        <svg viewBox="0 0 52 36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+          <rect width="52" height="36" fill="${bg}"/>
+          <rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" fill="${water}" opacity="0.7"/>
+          <path d="M0 18 L52 18" stroke="${road1}" stroke-width="3"/>
+          <path d="M22 0 L22 36" stroke="${road2}" stroke-width="2"/>
+        </svg>` : `
+        <svg viewBox="0 0 52 36" xmlns="http://www.w3.org/2000/svg">
+          <rect width="52" height="36" fill="${bg}"/>
+        </svg>`;
+      btn.addEventListener("click", () => {
+        this.selectedStyle = id;
+        localStorage.setItem("heatmap_style", id);
+        this.buildFilterBar();
+        this.map.setStyle(STYLE_URL(id));
+        this.map.once("style.load", () => this.addHeatmapTiles());
+      });
+      wrap.appendChild(btn);
     });
 
     return wrap;
