@@ -8,15 +8,14 @@ A self-hosted activity tracker for cyclists and other athletes. Upload GPX or FI
 
 - **GPX & FIT import** — upload files from any GPS device or Strava export; both formats fully parsed in pure Ruby with no external dependencies
 - **Device detection** — recording device extracted automatically from GPX `creator` attribute and FIT `file_id` / `device_info` messages (Garmin, Wahoo, Suunto, Polar, and more)
-- **Duplicate detection** — flags rides within 2 min / 2% distance of an existing one
-- **Interactive maps** — MapLibre GL with multiple basemap styles (Bright, Liberty, Positron, Dark, Fiord), elevation profile, animated timeline scrubber, and 3D terrain
-- **Heatmap** — raster tile heatmap of all activities at any zoom level, precomputed per activity and stored as compressed pixel bitmaps
+- **Duplicate detection** — two-phase check: metadata pre-filter (±30 min, ±5% distance) confirmed by `ST_HausdorffDistance` track comparison when geometry is available
+- **Interactive maps** — MapLibre GL with multiple basemap styles (Bright, Liberty, Positron, Dark, Fiord), elevation profile with hover tooltip, animated timeline scrubber, 3D terrain, fullscreen mode, and Strava-style outlined track
+- **Heatmap** — raster tile heatmap of all activities at any zoom level, filterable by year, month, and activity type; precomputed per activity and stored as compressed pixel bitmaps
 - **Tours** — group multi-day activities into tours; pick a date range and matching activities are assigned automatically
 - **Calendar** — monthly and yearly activity summaries
 - **Filtering & sorting** — search by name, filter by activity type and year, sort by date / distance / elevation / name
 - **Export** — GeoJSON, GPX, and static PNG map image per activity
-- **Public athlete profiles** — opt-in public page showing your activities
-- **Magic-link authentication** — no passwords
+- **Email/password authentication** — standard registration and login
 
 ## Tech stack
 
@@ -52,7 +51,7 @@ rails db:create db:schema:load
 rails server
 ```
 
-Create your account by visiting `/session/new` and entering your email. The magic link is printed to the development log.
+Create your account by visiting `/registrations/new`.
 
 ## Heatmap tiles
 
