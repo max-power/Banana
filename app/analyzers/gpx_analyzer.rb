@@ -1,4 +1,4 @@
-class GpxAnalyzer < ActiveStorage::Analyzer
+class GPXAnalyzer < ActiveStorage::Analyzer
   # Only run this analyzer if the file is a GPX
   def self.accept?(blob)
     blob.filename.extension.casecmp?("gpx") || blob.content_type == "application/gpx+xml"

@@ -110,7 +110,7 @@ class Activity < ApplicationRecord
     # Re-run the appropriate analyzer on the fly to fill it in.
     if !meta.key?(:utc_offset) && !meta.key?("utc_offset")
       blob = file.blob
-      klass = [ GpxAnalyzer, FITAnalyzer ].find { |a| a.accept?(blob) }
+      klass = [ GPXAnalyzer, FITAnalyzer ].find { |a| a.accept?(blob) }
       fresh = klass&.new(blob)&.metadata rescue {}
       meta = meta.merge(utc_offset: fresh[:utc_offset]) if fresh.key?(:utc_offset)
     end
