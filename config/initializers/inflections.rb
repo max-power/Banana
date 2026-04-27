@@ -12,5 +12,4 @@
 
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.acronym "SVG"
-  inflect.acronym "GPX"
 end
