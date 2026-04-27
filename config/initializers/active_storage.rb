@@ -6,4 +6,4 @@ require_relative Rails.application.root.join('app', 'models', 'fit', 'activity.r
 require_relative Rails.application.root.join('app', 'analyzers', 'fit_analyzer.rb')
 
 Rails.application.config.active_storage.analyzers.append GpxAnalyzer
-Rails.application.config.active_storage.analyzers.append FitAnalyzer
+Rails.application.config.active_storage.analyzers.append FITAnalyzer

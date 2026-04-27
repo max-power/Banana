@@ -1,4 +1,4 @@
-class FitAnalyzer < ActiveStorage::Analyzer
+class FITAnalyzer < ActiveStorage::Analyzer
   def self.accept?(blob)
     blob.filename.extension.casecmp?("fit")
   end
